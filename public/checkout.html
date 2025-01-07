@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Spotify Clone</title>
+    <script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.js"></script>
+    <link rel="stylesheet" href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.css" />
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="drop-in.css">
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+        <a href="/">
+            <img src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_White.png" alt="Spotify" class="logo">
+        </a>
+        <nav>
+            <a href="/" class="nav-item">Home</a>
+            <a href="#" class="nav-item">Search</a>
+            <a href="#" class="nav-item">Your Library</a>
+            <a href="#" class="nav-item">Create Playlist</a>
+            <a href="#" class="nav-item">Liked Songs</a>
+        </nav>
+    </div>
+    <div class="checkout-container">
+        <h1 id="checkout-title">Complete Your Purchase</h1>
+        <div id="dropin-container"></div>
+    </div>
+    <script src="checkout.js"></script>
+  </div>
+</body>
+</html>

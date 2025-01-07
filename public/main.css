@@ -1,0 +1,142 @@
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #121212;
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  display: flex;
+}
+.sidebar {
+  width: 150px;
+  background-color: #000000;
+  padding: 24px;
+  height: 100vh;
+  position: fixed;
+}
+.main-content {
+  margin-left: 230px;
+  padding: 24px;
+  width: calc(100% - 230px);
+}
+.header {
+  background-color: #101010;
+  padding: 16px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.logo {
+  width: 132px;
+  height: 40px;
+  margin-bottom: 24px;
+}
+.nav-item {
+  color: #b3b3b3;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 40px;
+  display: block;
+}
+.nav-item:hover {
+  color: #ffffff;
+}
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+h1, h2 {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+.playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 24px;
+}
+.playlist-item {
+  background-color: #181818;
+  border-radius: 8px;
+  padding: 16px;
+  transition: background-color 0.3s;
+}
+.playlist-item:hover {
+  background-color: #282828;
+}
+.playlist-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+.playlist-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.playlist-description {
+  font-size: 14px;
+  color: #b3b3b3;
+}
+.player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #181818;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.player-controls {
+  display: flex;
+  align-items: center;
+}
+.player-button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  margin: 0 8px;
+  cursor: pointer;
+}
+.progress-bar {
+  flex-grow: 1;
+  height: 4px;
+  background-color: #535353;
+  margin: 0 16px;
+}
+.button {
+  background-color: #1db954;
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.progress-bar-container {
+  flex-grow: 1;
+  height: 4px;
+  background-color: #535353;
+  margin: 0 16px;
+}
+.progress-bar {
+  height: 100%;
+  background-color: #1db954;
+  width: 0%;
+}
+#dropin-container {
+  margin-top: 20px;
+}
+
+.checkout-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+}
