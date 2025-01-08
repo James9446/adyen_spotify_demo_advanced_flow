@@ -77,22 +77,97 @@ app.post("/api/payments", async (req, res) => {
     const reference = req.body.reference;
     const paymentMethod = req.body.paymentData.paymentMethod;
     const riskData = req.body.paymentData.riskData;
+    const lineItems = req.body.lineItems;
 
     // Create the request object(s)
+    // const paymentRequest = {
+    //   amount,
+    //   reference,
+    //   paymentMethod,
+    //   riskData,
+    //   returnUrl: "https://207a399b-3262-4a38-908f-787ffe2ae23d-00-1ry6k6zlua0j2.picard.replit.dev/checkout",
+    //   merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
+    //   lineItems,
+    //   shopperEmail: "youremail@email.com",
+    //   shopperName: {
+    //     firstName: "Testperson-se",
+    //     gender: "UNKNOWN",
+    //     lastName: "Approved"
+    //   },
+    //   shopperReference: uuid(),
+    //   additionalData: {
+    //     "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
+    //   }
+    // };
+
+    const countryCode = req.body.countryCode;
+    const shopperLocale = req.body.locale;
+    // const channel = req.body.channel;
+    // const lineItems = req.body.lineItems;
+
     const paymentRequest = {
-      amount,
-      reference,
-      paymentMethod,
-      riskData,
-      returnUrl: "https://207a399b-3262-4a38-908f-787ffe2ae23d-00-1ry6k6zlua0j2.picard.replit.dev/checkout",
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-    };
+      reference: uuid(),
+      paymentMethod: {
+        type: "klarna_account"
+      },
+      amount,
+      shopperLocale,
+      countryCode,
+      telephoneNumber: "+46 840 839 298",
+      shopperEmail: "youremail@email.com",
+      shopperName: {
+        firstName: "Testperson-se",
+        gender: "UNKNOWN",
+        lastName: "Approved"
+      },
+      shopperReference: uuid(),
+      billingAddress: {
+        city: "San Francisco",
+        stateOrProvince: "CA",
+        country: "US",
+        houseNumberOrName: "1",
+        postalCode: "12345",
+        street: "Stargatan"
+      },
+      deliveryAddress: {
+        city: "San Francsico",
+        stateOrProvince: "CA",
+        country: "US",
+        houseNumberOrName: "1",
+        postalCode: "12345",
+        street: "Stargatan"
+      },
+      returnUrl: "https://3000-james9446-adyenspotifyd-6bw7zeb6tnt.ws-us117.gitpod.io/checkout",
+      lineItems: [ {
+        quantity: "1",
+        taxPercentage: "2100",
+        description: "Shoes",
+        id: "Item #1",
+        amountIncludingTax: "400",
+        productUrl: "URL_TO_PURCHASED_ITEM",
+        imageUrl: "URL_TO_PICTURE_OF_PURCHASED_ITEM"
+      }, {
+        quantity: "2",
+        taxPercentage: "2100",
+        description: "Socks",
+        id: "Item #2",
+        amountIncludingTax: "300",
+        productUrl: "URL_TO_PURCHASED_ITEM",
+        imageUrl: "URL_TO_PICTURE_OF_PURCHASED_ITEM"
+      } ]
+      // additionalData: {
+      //   "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
+      // }
+    }
+
+    console.log("payment request object", paymentRequest);
 
     // console.log('request body:', paymentRequest);
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
     });
-
+    console.log('Payment response: ', response);
     res.json(response);
   } catch (err) {
     console.error(

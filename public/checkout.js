@@ -25,17 +25,23 @@ async function startCheckout() {
         const checkoutDetails = {
             amount: {
                 value: 10000,
-                currency: "EUR",
+                currency: "USD",
             },
-            countryCode: "NL",
-            locale: "nl-NL",
+            countryCode: "US",
+            locale: "en-US",
             channel: "Web",
-            lineItems: [
+            lineItems:[
                 {
-                    quantity: 1,
-                    amountIncludingTax: 10000,
-                    description: "Premium Membership",
-                },
+                    "quantity": "1",
+                    "amountExcludingTax": "331",
+                    "taxPercentage": "2100",
+                    "description": "Shoes",
+                    "id": "Item #1",
+                    "taxAmount": "0",
+                    "amountIncludingTax": "10001",
+                    "productUrl": "URL_TO_PURCHASED_ITEM",
+                    "imageUrl": "URL_TO_PICTURE_OF_PURCHASED_ITEM"
+                }
             ],
         };
         // Call the server to create a payment session
@@ -66,8 +72,9 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     const amount = checkoutDetails.amount;
     const locale = checkoutDetails.locale;
     const countryCode = checkoutDetails.countryCode;
+    const lineItems = checkoutDetails.lineItems;
 
-    console.log("amount createCheckoutInstance", amount);
+    // console.log("amount createCheckoutInstance", amount);
 
     const configuration = {
         clientKey,
@@ -81,6 +88,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 
         onSubmit: async (state, component, actions) => {
             try {
+                console.log("onSubmit triggered");
                 console.log("state: ", state);
                 console.log("component: ", component);
                 console.log("actions: ", actions);
@@ -94,6 +102,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     locale,
                     amount,
                     reference,
+                    lineItems
                 });
 
                 console.log("result", result);
@@ -109,12 +118,31 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
                 console.log("actions: ", actions);
-                actions.resolve({
-                    resultCode,
-                    action,
-                    order,
-                    donationToken,
-                });
+                console.log("resultCode: ", resultCode)
+                if (action) {
+                    component.handleAction(action);
+                } else {
+                    component.setState('Success');
+                }
+                // if (actions) {
+                //     console.log('onAdditionalDetails actions: ')
+                //     actions.resolve({
+                //         resultCode,
+                //         action,
+                //         order,
+                //         donationToken,
+                //     });
+                // } else {
+                //     console.log('no actions object -> return');
+                //     component.handleAction(action);
+                //     return;
+                // }
+                // actions.resolve({
+                //     resultCode,
+                //     action,
+                //     order,
+                //     donationToken,
+                // });
 
                 // if (action) {
                 //   component.handleAction(action);
@@ -149,6 +177,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
             //   }
 
             try {
+                console.log("onAdditionalDetails triggered")
                 // Make a POST /payments/details request from your server.
                 const result = await makeDetailsCall(state.data);
 
@@ -162,12 +191,18 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 
                 // If the /payments/details request request from your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
-                actions.resolve({
-                    resultCode,
-                    action,
-                    order,
-                    donationToken,
-                });
+
+                if (actions) {
+                    console.log('onAdditionalDetails actions: ')
+                    actions.resolve({
+                        resultCode,
+                        action,
+                        order,
+                        donationToken,
+                    });
+                } else {
+                    return;
+                }
             } catch (error) {
                 console.error("onSubmit", error);
                 actions.reject();

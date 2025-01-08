@@ -32,3 +32,6 @@ package-lock.json
 
 # gitignore yarn.lock if you're using npm
 yarn.lock
+
+# gitpod yml file
+.gitpod.yml
