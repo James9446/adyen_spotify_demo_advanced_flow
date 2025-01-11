@@ -20,7 +20,6 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 
 // Adyen NodeJS library configuration
 const config = new Config();
-// console.log("process.env.ADYEN_API_KEY", process.env.ADYEN_API_KEY);
 config.apiKey = process.env.ADYEN_API_KEY;
 const client = new Client({ config });
 client.setEnvironment("TEST"); // change to LIVE for production
@@ -78,6 +77,9 @@ app.post("/api/payments", async (req, res) => {
     const paymentMethod = req.body.paymentData.paymentMethod;
     const riskData = req.body.paymentData.riskData;
     const lineItems = req.body.lineItems;
+    const gitpodURL = req.body.gitpodURL;
+
+    console.log("paymentMethod: ", paymentMethod);
 
     // Create the request object(s)
     // const paymentRequest = {
@@ -107,13 +109,15 @@ app.post("/api/payments", async (req, res) => {
 
     const paymentRequest = {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-      reference: uuid(),
-      paymentMethod: {
-        type: "klarna_account"
-      },
+      reference,
+      // paymentMethod: {
+      //   type: "klarna_account"
+      // },
+      paymentMethod,
       amount,
       shopperLocale,
       countryCode,
+      riskData,
       telephoneNumber: "+46 840 839 298",
       shopperEmail: "youremail@email.com",
       shopperName: {
@@ -138,7 +142,7 @@ app.post("/api/payments", async (req, res) => {
         postalCode: "12345",
         street: "Stargatan"
       },
-      returnUrl: "https://3000-james9446-adyenspotifyd-6bw7zeb6tnt.ws-us117.gitpod.io/checkout",
+      returnUrl: `${gitpodURL}/checkout`,
       lineItems: [ {
         quantity: "1",
         taxPercentage: "2100",
@@ -179,6 +183,39 @@ app.post("/api/payments", async (req, res) => {
   }
 });
 
+// Payment Details
+app.post("/api/payments/details", async (req, res) => {
+  console.log("/payment/details start");
+  
+  try {
+    const redirectResult = req.body.redirectResult;
+    console.log("redirectResult: ", redirectResult);
+    const response = await checkout.PaymentsApi.paymentsDetails(
+      {
+        "details": {
+          "redirectResult": redirectResult
+        }
+      },
+      {
+        idempotencyKey: uuid(),
+      },
+    );
+
+    // return the payment methods to the client i.e. return the CreateCheckoutSessionResponse object
+    res.json(response);
+  } catch (err) {
+    console.error(
+      `Error: ${err.message}, error code: ${err.errorCode}, stack: ${err.stack}`,
+    );
+    res
+      .status(err.statusCode || 500)
+      .json({ error: "An error occurred during payment processing" });
+  }
+});
+
+
+
+
 // Webhook
 app.post("/api/webhooks/notifications", async (req, res) => {
   const hmacKey = process.env.ADYEN_HMAC_KEY;
@@ -218,6 +255,11 @@ app.get("/", (req, res) => {
 // Server the checkout.html file
 app.get("/checkout", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "checkout.html"));
+});
+
+// Server the checkout.html file
+app.get("/thank-you", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "thank-you.html"));
 });
 
 // Serve the clientKey to the client

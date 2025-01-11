@@ -3,15 +3,20 @@ const urlParams = new URLSearchParams(window.location.search);
 const sessionId = urlParams.get("sessionId");
 const redirectResult = urlParams.get("redirectResult");
 
+// gitpod url
+const gitpodURL = window.location.href.split('/checkout')[0];
+console.log('gitpodURL', gitpodURL);
+
+
 // Trigger the checkout process on page load
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        if (!sessionId) {
+        if (!redirectResult) {
             // new session: start checkout
             startCheckout();
         } else {
             // existing session: complete Checkout
-            handleRedirect();
+            handleRedirect(redirectResult);
         }
     } catch (error) {
         console.error("Error:", error);
@@ -43,6 +48,7 @@ async function startCheckout() {
                     "imageUrl": "URL_TO_PICTURE_OF_PURCHASED_ITEM"
                 }
             ],
+            gitpodURL
         };
         // Call the server to create a payment session
         const paymentMethods = await callServer(
@@ -58,7 +64,9 @@ async function startCheckout() {
 
         // Create Drop-in component and mount it
         checkout
-            .create("dropin", { instantPaymentTypes: ["googlepay"] })
+            .create("dropin", { 
+                instantPaymentTypes: ["googlepay"]
+            })
             .mount(document.getElementById("dropin-container"));
     } catch (error) {
         console.error("Error in paymentMethods:", error);
@@ -73,6 +81,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     const locale = checkoutDetails.locale;
     const countryCode = checkoutDetails.countryCode;
     const lineItems = checkoutDetails.lineItems;
+    const gitpodURL = checkoutDetails.gitpodURL;
 
     // console.log("amount createCheckoutInstance", amount);
 
@@ -86,30 +95,31 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
         // The full /paymentMethods response object from your server. Contains the payment methods configured in your account.
         paymentMethodsResponse: paymentMethods,
 
-        onSubmit: async (state, component, actions) => {
+        onSubmit: async (state, component) => {
             try {
                 console.log("onSubmit triggered");
                 console.log("state: ", state);
                 console.log("component: ", component);
-                console.log("actions: ", actions);
 
-                // Make a POST /payments request from your server.
                 const paymentData = state.data;
                 const reference = crypto.randomUUID();
-                const result = await makePaymentsCall({
+
+                // Make a POST /payments request from your server.
+                const result = await callServer(`/api/payments`, {
                     paymentData,
                     countryCode,
                     locale,
                     amount,
                     reference,
-                    lineItems
+                    lineItems,
+                    gitpodURL,
                 });
 
                 console.log("result", result);
                 // If the payment is successful, redirect to the success page
                 // If the /payments request from your server fails, or if an unexpected error occurs.
                 if (!result.resultCode) {
-                    actions.reject();
+                    handlePaymentResult(result, component);
                     return;
                 }
 
@@ -117,101 +127,64 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
-                console.log("actions: ", actions);
-                console.log("resultCode: ", resultCode)
                 if (action) {
                     component.handleAction(action);
                 } else {
-                    component.setState('Success');
+                    // component.setStatus(resultCode);
+                    handlePaymentResult(result, component);
                 }
-                // if (actions) {
-                //     console.log('onAdditionalDetails actions: ')
-                //     actions.resolve({
-                //         resultCode,
-                //         action,
-                //         order,
-                //         donationToken,
-                //     });
-                // } else {
-                //     console.log('no actions object -> return');
-                //     component.handleAction(action);
-                //     return;
-                // }
-                // actions.resolve({
-                //     resultCode,
-                //     action,
-                //     order,
-                //     donationToken,
-                // });
-
-                // if (action) {
-                //   component.handleAction(action);
-                // } else {
-                //   component.setStatus(resultCode);
-                // }
             } catch (error) {
                 console.error("onSubmit", error);
-                actions.reject();
+                component.setStatus('error');
             }
         },
 
-        onAdditionalDetails: async (state, component, actions) => {
-            // try {
-            //     const result = await makeDetailsCall(state.data);
-
-            //     if (!result.resultCode) {
-            //       component.setStatus('error');
-            //       return;
-            //     }
-
-            //     const { resultCode, action } = result;
-
-            //     if (action) {
-            //       component.handleAction(action);
-            //     } else {
-            //       component.setStatus(resultCode);
-            //     }
-            //   } catch (error) {
-            //     console.error("onAdditionalDetails", error);
-            //     component.setStatus('error');
-            //   }
-
+        onAdditionalDetails: async (state, component) => {
             try {
-                console.log("onAdditionalDetails triggered")
-                // Make a POST /payments/details request from your server.
-                const result = await makeDetailsCall(state.data);
+                console.log("onSubmit triggered");
+                console.log("state: ", state);
+                console.log("component: ", component);
 
-                // If the /payments/details request from your server fails, or if an unexpected error occurs.
+                const paymentData = state.data;
+                const reference = crypto.randomUUID();
+
+                // Make a POST /payments request from your server.
+                const result = await callServer(`/api/payments/details`, {
+                    paymentData,
+                    countryCode,
+                    locale,
+                    amount,
+                    reference,
+                    lineItems,
+                    gitpodURL,
+                });
+
+                console.log("result", result);
+                // If the payment is successful, redirect to the success page
+                // If the /payments request from your server fails, or if an unexpected error occurs.
                 if (!result.resultCode) {
-                    actions.reject();
+                    handlePaymentResult(result, component);
                     return;
                 }
 
                 const { resultCode, action, order, donationToken } = result;
 
-                // If the /payments/details request request from your server is successful, you must call this to resolve whichever of the listed objects are available.
+                // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
-
-                if (actions) {
-                    console.log('onAdditionalDetails actions: ')
-                    actions.resolve({
-                        resultCode,
-                        action,
-                        order,
-                        donationToken,
-                    });
+                if (action) {
+                    component.handleAction(action);
                 } else {
-                    return;
+                    handlePaymentResult(result, component);
                 }
             } catch (error) {
                 console.error("onSubmit", error);
-                actions.reject();
+                component.setStatus('error');
             }
         },
         onPaymentCompleted: (result, component) => {
             console.log("Payment completed:");
             console.info(result, component);
-            handlePaymentResult(result);
+            handlePaymentResult(result, component);
         },
         onPaymentFailed: (result, component) => {
             console.info(result, component);
@@ -236,13 +209,12 @@ async function makePaymentsCall(paymentData) {
 }
 
 // Handle redirects after card challenges
-async function handleRedirect() {
+async function handleRedirect(redirectResult) {
     try {
-        // Create checkout instance using Session extracted from query string parameter
-        const checkout = await createCheckoutInstance({ id: sessionId });
+        const result = await callServer(`/api/payments/details`, {redirectResult});
+        console.log('redirect payment details result: ', result);
+        handlePaymentResult(result);
 
-        // Submit the extracted redirectResult - triggers the onPaymentCompleted() handler
-        checkout.submitDetails({ details: { redirectResult } });
     } catch (error) {
         console.error(error);
         alert("Error occurred. Look at console for details");
@@ -250,9 +222,10 @@ async function handleRedirect() {
 }
 
 // Handle the payment result
-function handlePaymentResult(response) {
+function handlePaymentResult(response, component) {
     switch (response.resultCode) {
         case "Authorised":
+            component ? component.unmount() : console.log('no component');
             changeCheckoutTitle("Payment Completed");
             setTimeout(addPaymentCompleteMessage, 2000);
             setTimeout(addButton, 3000);
@@ -279,6 +252,7 @@ function handlePaymentResult(response) {
         default:
             changeCheckoutTitle("Error");
             console.log("response.resultCode: ", response.resultCode);
+            component ? component.setStatus('error') : console.log('no component');
             break;
     }
 }
@@ -301,7 +275,6 @@ async function callServer(url, data) {
 async function getClientKey() {
     const response = await fetch("/api/getClientKey");
     const data = await response.json();
-    console.log(data.clientKey);
     return data.clientKey;
 }
 
