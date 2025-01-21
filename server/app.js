@@ -20,7 +20,6 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 
 // Adyen NodeJS library configuration
 const config = new Config();
-// console.log("process.env.ADYEN_API_KEY", process.env.ADYEN_API_KEY);
 config.apiKey = process.env.ADYEN_API_KEY;
 const client = new Client({ config });
 client.setEnvironment("TEST"); // change to LIVE for production
@@ -77,22 +76,102 @@ app.post("/api/payments", async (req, res) => {
     const reference = req.body.reference;
     const paymentMethod = req.body.paymentData.paymentMethod;
     const riskData = req.body.paymentData.riskData;
+    const lineItems = req.body.lineItems;
+    const gitpodURL = req.body.gitpodURL;
+
+    console.log("paymentMethod: ", paymentMethod);
 
     // Create the request object(s)
+    // const paymentRequest = {
+    //   amount,
+    //   reference,
+    //   paymentMethod,
+    //   riskData,
+    //   returnUrl: "https://207a399b-3262-4a38-908f-787ffe2ae23d-00-1ry6k6zlua0j2.picard.replit.dev/checkout",
+    //   merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
+    //   lineItems,
+    //   shopperEmail: "youremail@email.com",
+    //   shopperName: {
+    //     firstName: "Testperson-se",
+    //     gender: "UNKNOWN",
+    //     lastName: "Approved"
+    //   },
+    //   shopperReference: uuid(),
+    //   additionalData: {
+    //     "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
+    //   }
+    // };
+
+    const countryCode = req.body.countryCode;
+    const shopperLocale = req.body.locale;
+    // const channel = req.body.channel;
+    // const lineItems = req.body.lineItems;
+
     const paymentRequest = {
-      amount,
-      reference,
-      paymentMethod,
-      riskData,
-      returnUrl: "https://207a399b-3262-4a38-908f-787ffe2ae23d-00-1ry6k6zlua0j2.picard.replit.dev/checkout",
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-    };
+      reference,
+      // paymentMethod: {
+      //   type: "klarna_account"
+      // },
+      paymentMethod,
+      amount,
+      shopperLocale,
+      countryCode,
+      riskData,
+      telephoneNumber: "+46 840 839 298",
+      shopperEmail: "youremail@email.com",
+      shopperName: {
+        firstName: "Testperson-se",
+        gender: "UNKNOWN",
+        lastName: "Approved"
+      },
+      shopperReference: uuid(),
+      billingAddress: {
+        city: "San Francisco",
+        stateOrProvince: "CA",
+        country: "US",
+        houseNumberOrName: "1",
+        postalCode: "12345",
+        street: "Stargatan"
+      },
+      deliveryAddress: {
+        city: "San Francsico",
+        stateOrProvince: "CA",
+        country: "US",
+        houseNumberOrName: "1",
+        postalCode: "12345",
+        street: "Stargatan"
+      },
+      returnUrl: `${gitpodURL}/checkout`,
+      lineItems: [ {
+        quantity: "1",
+        taxPercentage: "2100",
+        description: "Shoes",
+        id: "Item #1",
+        amountIncludingTax: "400",
+        productUrl: "URL_TO_PURCHASED_ITEM",
+        imageUrl: "URL_TO_PICTURE_OF_PURCHASED_ITEM"
+      }, {
+        quantity: "2",
+        taxPercentage: "2100",
+        description: "Socks",
+        id: "Item #2",
+        amountIncludingTax: "300",
+        productUrl: "URL_TO_PURCHASED_ITEM",
+        imageUrl: "URL_TO_PICTURE_OF_PURCHASED_ITEM"
+      } ]
+      // additionalData: {
+      //   "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
+      // }
+    }
+
+    console.log("payment request object", paymentRequest);
 
     // console.log('request body:', paymentRequest);
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
     });
-
+    console.log('Payment response: ', response);
     res.json(response);
   } catch (err) {
     console.error(
@@ -103,6 +182,39 @@ app.post("/api/payments", async (req, res) => {
       .json({ error: "An error occurred during payment processing" });
   }
 });
+
+// Payment Details
+app.post("/api/payments/details", async (req, res) => {
+  console.log("/payment/details start");
+  
+  try {
+    const redirectResult = req.body.redirectResult;
+    console.log("redirectResult: ", redirectResult);
+    const response = await checkout.PaymentsApi.paymentsDetails(
+      {
+        "details": {
+          "redirectResult": redirectResult
+        }
+      },
+      {
+        idempotencyKey: uuid(),
+      },
+    );
+
+    // return the payment methods to the client i.e. return the CreateCheckoutSessionResponse object
+    res.json(response);
+  } catch (err) {
+    console.error(
+      `Error: ${err.message}, error code: ${err.errorCode}, stack: ${err.stack}`,
+    );
+    res
+      .status(err.statusCode || 500)
+      .json({ error: "An error occurred during payment processing" });
+  }
+});
+
+
+
 
 // Webhook
 app.post("/api/webhooks/notifications", async (req, res) => {
@@ -143,6 +255,11 @@ app.get("/", (req, res) => {
 // Server the checkout.html file
 app.get("/checkout", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "checkout.html"));
+});
+
+// Server the checkout.html file
+app.get("/thank-you", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "thank-you.html"));
 });
 
 // Serve the clientKey to the client
