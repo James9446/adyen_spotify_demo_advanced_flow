@@ -56,6 +56,8 @@ async function startCheckout() {
             checkoutDetails,
         );
 
+        console.log('paymentMethods: ', paymentMethods);
+
         // Create checkout instance using the session returned by the server
         const checkout = await createCheckoutInstance({
             paymentMethods,
@@ -141,7 +143,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 
         onAdditionalDetails: async (state, component) => {
             try {
-                console.log("onSubmit triggered");
+                console.log("onAdditionalDetails triggered");
                 console.log("state: ", state);
                 console.log("component: ", component);
 
