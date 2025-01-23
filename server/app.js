@@ -38,6 +38,7 @@ app.post("/api/paymentMethods", async (req, res) => {
     const shopperLocale = req.body.locale;
     const channel = req.body.channel;
     const lineItems = req.body.lineItems;
+    const shopperReference = req.body.shopperReference;
 
     const paymentMethodRequest = {
       amount,
@@ -46,8 +47,9 @@ app.post("/api/paymentMethods", async (req, res) => {
       shopperLocale,
       channel,
       lineItems,
+      shopperReference
     };
-    // console.log("request body:", paymentMethodRequest);
+    console.log("request body:", paymentMethodRequest);
     const response = await checkout.PaymentsApi.paymentMethods(
       paymentMethodRequest,
       {
@@ -72,14 +74,16 @@ app.post("/api/payments", async (req, res) => {
   console.log("/payment");
   try {
     // console.log("payment request body", req.body);
-    const amount = req.body.amount;
-    const reference = req.body.reference;
-    const paymentMethod = req.body.paymentData.paymentMethod;
-    const riskData = req.body.paymentData.riskData;
-    const lineItems = req.body.lineItems;
+
+    //
+    // const amount = req.body.amount;
+    // const reference = req.body.reference;
+    // const paymentMethod = req.body.paymentData.paymentMethod;
+    // const riskData = req.body.paymentData.riskData;
+    // const lineItems = req.body.lineItems;
     const gitpodURL = req.body.gitpodURL;
 
-    console.log("paymentMethod: ", paymentMethod);
+    // console.log("paymentMethod: ", paymentMethod);
 
     // Create the request object(s)
     // const paymentRequest = {
@@ -107,41 +111,38 @@ app.post("/api/payments", async (req, res) => {
     // const channel = req.body.channel;
     // const lineItems = req.body.lineItems;
 
-    const paymentRequest = {
+    let paymentRequest = {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-      reference,
-      // paymentMethod: {
-      //   type: "klarna_account"
+      // reference,
+      // paymentMethod,
+      // amount,
+      // shopperLocale,
+      // countryCode,
+      // riskData,
+      // shopperReference: uuid(),
+      // telephoneNumber: "+46 840 839 298",
+      // shopperEmail: "youremail@email.com",
+      // shopperName: {
+      //   firstName: "Testperson-se",
+      //   gender: "UNKNOWN",
+      //   lastName: "Approved"
       // },
-      paymentMethod,
-      amount,
-      shopperLocale,
-      countryCode,
-      riskData,
-      telephoneNumber: "+46 840 839 298",
-      shopperEmail: "youremail@email.com",
-      shopperName: {
-        firstName: "Testperson-se",
-        gender: "UNKNOWN",
-        lastName: "Approved"
-      },
-      shopperReference: uuid(),
-      billingAddress: {
-        city: "San Francisco",
-        stateOrProvince: "CA",
-        country: "US",
-        houseNumberOrName: "1",
-        postalCode: "12345",
-        street: "Stargatan"
-      },
-      deliveryAddress: {
-        city: "San Francsico",
-        stateOrProvince: "CA",
-        country: "US",
-        houseNumberOrName: "1",
-        postalCode: "12345",
-        street: "Stargatan"
-      },
+      // billingAddress: {
+      //   city: "San Francisco",
+      //   stateOrProvince: "CA",
+      //   country: "US",
+      //   houseNumberOrName: "1",
+      //   postalCode: "12345",
+      //   street: "Stargatan"
+      // },
+      // deliveryAddress: {
+      //   city: "San Francsico",
+      //   stateOrProvince: "CA",
+      //   country: "US",
+      //   houseNumberOrName: "1",
+      //   postalCode: "12345",
+      //   street: "Stargatan"
+      // },
       returnUrl: `${gitpodURL}/checkout`,
       lineItems: [ {
         quantity: "1",
@@ -164,6 +165,8 @@ app.post("/api/payments", async (req, res) => {
       //   "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
       // }
     }
+
+    paymentRequest = Object.assign(paymentRequest, req.body)
 
     console.log("payment request object", paymentRequest);
 

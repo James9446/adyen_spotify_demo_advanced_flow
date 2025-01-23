@@ -7,6 +7,23 @@ const redirectResult = urlParams.get("redirectResult");
 const gitpodURL = window.location.href.split('/checkout')[0];
 console.log('gitpodURL', gitpodURL);
 
+// Tokenization
+function shouldSavePayment() {
+    checkboxValue = document.getElementById('save-payment').checked;
+    return checkboxValue;
+};
+
+function getUser(e) {
+    // identify user based on dropdown selection
+    let user = users[document.getElementById("usersDropdown").value];
+    // if (e.shiftKey) {
+    //   return console.log(JSON.stringify(user, null, ' '));
+    // };
+    return user;
+}
+
+const user = getUser();
+console.log("user: ", user);
 
 // Trigger the checkout process on page load
 document.addEventListener("DOMContentLoaded", async () => {
@@ -48,7 +65,8 @@ async function startCheckout() {
                     "imageUrl": "URL_TO_PICTURE_OF_PURCHASED_ITEM"
                 }
             ],
-            gitpodURL
+            gitpodURL,
+            shopperReference: user.shopperReference
         };
         // Call the server to create a payment session
         const paymentMethods = await callServer(
@@ -56,8 +74,7 @@ async function startCheckout() {
             checkoutDetails,
         );
 
-        console.log('paymentMethods: ', paymentMethods);
-
+        console.log('paymentMehods: ', paymentMethods);
         // Create checkout instance using the session returned by the server
         const checkout = await createCheckoutInstance({
             paymentMethods,
@@ -103,19 +120,39 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 console.log("state: ", state);
                 console.log("component: ", component);
 
-                const paymentData = state.data;
+                // const paymentData = state.data;
                 const reference = crypto.randomUUID();
-
-                // Make a POST /payments request from your server.
-                const result = await callServer(`/api/payments`, {
-                    paymentData,
+                
+                let paymentsBody = {};
+                const paymentsProps = {
+                    // paymentData,
                     countryCode,
                     locale,
                     amount,
                     reference,
                     lineItems,
                     gitpodURL,
-                });
+                };
+                const additionalTokenizationProps = {
+                    // shopperReference: "tokenization_test_01",
+                    shopperInteraction: "Ecommerce",
+                    recurringProcessingModel: "CardOnFile",
+                    storePaymentMethod: true
+                }
+                
+                const shouldTokenize = shouldSavePayment();
+
+                if (shouldTokenize) { 
+                    paymentsBody = Object.assign(state.data, user, paymentsProps, additionalTokenizationProps);
+                } else {
+                    paymentsBody = Object.assign(state.data, user, paymentsProps);
+                }
+
+                console.log('shouldTokenize: ', shouldTokenize);
+                console.log('paymentsBody: ', paymentsBody);
+
+                // Make a POST /payments request from your server.
+                const result = await callServer(`/api/payments`, paymentsBody);
 
                 console.log("result", result);
                 // If the payment is successful, redirect to the success page

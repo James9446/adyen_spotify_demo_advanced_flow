@@ -140,3 +140,18 @@ h1, h2 {
   margin: 0 auto;
   padding: 20px;
 }
+
+.save-payment-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.save-payment-container input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.save-payment-container label {
+  font-size: 14px;
+  color: #ffffff;
+}
