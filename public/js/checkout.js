@@ -13,19 +13,6 @@ function shouldSavePayment() {
     return checkboxValue;
 };
 
-// function getUser(e) {
-//     // identify user based on dropdown selection
-//     let user = users[document.getElementById("users-dropdown").value];
-//     if (e?.shiftKey) {
-//       return console.log(JSON.stringify(user, null, ' '));
-//     };
-//     startCheckout();
-//     return user;
-// }
-
-// const user = getUser();
-// console.log("user: ", user);
-
 // Trigger the checkout process on page load
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -106,8 +93,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     const countryCode = checkoutDetails.countryCode;
     const lineItems = checkoutDetails.lineItems;
     const gitpodURL = checkoutDetails.gitpodURL;
-
-    // console.log("amount createCheckoutInstance", amount);
+    const user = await getData("/api/getUser");
 
     const configuration = {
         clientKey,
@@ -124,6 +110,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 console.log("onSubmit triggered");
                 console.log("state: ", state);
                 console.log("component: ", component);
+                console.log("paymentMethods: ", paymentMethods);
 
                 // const paymentData = state.data;
                 const reference = crypto.randomUUID();
@@ -139,15 +126,13 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     gitpodURL,
                 };
                 const additionalTokenizationProps = {
-                    // shopperReference: "tokenization_test_01",
-                    shopperInteraction: "Ecommerce",
-                    recurringProcessingModel: "CardOnFile",
-                    storePaymentMethod: true
+                    shopperInteraction: state.data.paymentMethod.storedPaymentMethodId ? "ContAuth" : "Ecommerce",
+                    recurringProcessingModel: "CardOnFile", 
+                    storePaymentMethod: state.data.paymentMethod.storedPaymentMethodId ? false : true,
                 }
-                
                 const shouldTokenize = shouldSavePayment();
 
-                if (shouldTokenize) { 
+                if (shouldTokenize || state.data.paymentMethod.storedPaymentMethodId) { 
                     paymentsBody = Object.assign(state.data, user, paymentsProps, additionalTokenizationProps);
                 } else {
                     paymentsBody = Object.assign(state.data, user, paymentsProps);
