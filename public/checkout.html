@@ -21,27 +21,26 @@
             <a href="#" class="nav-item">Your Library</a>
             <a href="#" class="nav-item">Create Playlist</a>
             <a href="#" class="nav-item">Liked Songs</a>
-            <!-- <div>   
-                <h2>Login</h2>
-                <select id="users-dropdown">
-                    <option value="luigi">Luigi</option>
-                    <option value="mario">Mario</option>
-                    <option value="homer">Homer Simpson</option>
-                </select>
-                <button id="login-btn">Login</button>
-            </div> -->
         </nav>
     </div>
-    <div class="checkout-container">
-        <h1 id="checkout-title">Complete Your Purchase</h1>
-        <div class="save-payment-container">
-            <input type="checkbox" id="save-payment">
-            <label for="save-payment">Save your payment details for future use</label>
+    <div class="main-content">
+        <header class="header">
+            <div class="profile-picture">
+                <img id="profile-picture" src="./images/generic.png" alt="Profile Picture" class="circular-image">
+            </div>
+        </header>
+        <div class="checkout-container">
+            <h1 id="checkout-title">Complete Your Purchase</h1>
+            <div class="save-payment-container">
+                <input type="checkbox" id="save-payment">
+                <label for="save-payment">Save your payment details for future use</label>
+            </div>
+            <div id="dropin-container"></div>
         </div>
-        <div id="dropin-container"></div>
+
     </div>
-    <script src='./js/users.js'></script>
+</div>
+    <script src="./js/utilities.js"></script>
     <script src="./js/checkout.js"></script>
-  </div>
 </body>
 </html>

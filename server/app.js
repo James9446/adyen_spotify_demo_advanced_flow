@@ -207,26 +207,8 @@ app.get("/api/getClientKey", (req, res) => {
 
 // PSEUDO DB - SIMPLE JSON FILES
 
-app.post('/api/saveData', async (req, res) => {
-  console.log('Received request to /api/saveData');
-  console.log('saveData request body:', req.body);
-
-  const data = req.body.data;
-  const filePath = req.body.path;
-
-  try {
-    await fs.writeFile(filePath, JSON.stringify(data));
-    console.log('Data saved successfully');
-    res.status(200).json({ message: 'Data saved successfully' });
-  } catch (err) {
-    console.error('Error writing to file:', err);
-    res.status(500).json({ error: 'Error writing to file' });
-  }
-});
-
-app.get('/api/getUser', async (req, res) => {
-  const filePath = 'server/pseudo-db/users-db.json'; // Specify the file path
-
+app.post('/api/getFile', async (req, res) => {
+  const filePath = `server/pseudo-db/${req.body.file}`;
   try {
     const data = await fs.readFile(filePath, 'utf8');
     const jsonData = JSON.parse(data);
@@ -240,6 +222,47 @@ app.get('/api/getUser', async (req, res) => {
     res.status(500).send('Error reading file');
   }
 });
+
+
+app.post('/api/saveFile', async (req, res) => {
+  // const { data, path: filePath } = req.body;
+
+  const data = req.body.data;
+  const filePath = req.body.path;
+
+  if (!data || !filePath) {
+    return res.status(400).json({ error: 'Missing data or file path' });
+  }
+
+  // const fullPath = path.resolve(filePath);
+
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    console.log(`Data saved successfully to ${filePath}`);
+    res.status(200).json({ message: 'Data saved successfully' });
+  } catch (err) {
+    console.error('Error writing to file:', err);
+    res.status(500).json({ error: 'Error writing to file', details: err.message });
+  }
+});
+
+
+// app.post('/api/saveFile', async (req, res) => {
+//   // console.log('Received request to /api/saveFile');
+//   // console.log('saveFile request body:', req.body);
+
+//   const data = req.body.data;
+//   const filePath = req.body.path;
+
+//   try {
+//     await fs.writeFile(filePath, JSON.stringify(data));
+//     console.log('Data saved successfully');
+//     res.status(200).json({ message: 'Data saved successfully' });
+//   } catch (err) {
+//     console.error('Error writing to file:', err);
+//     res.status(500).json({ error: 'Error writing to file' });
+//   }
+// });
 
 
 // Start server

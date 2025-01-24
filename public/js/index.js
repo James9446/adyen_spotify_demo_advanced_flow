@@ -1,56 +1,43 @@
-// async function saveData(data) {
-//     try {
-//       const response = await fetch('/api/saveData', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(data)
-//       });
-  
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! status: ${response.status}`);
-//       }
-  
-//       const result = await response.text();
-//       console.log(result); // Log the server's response
-//     } catch (error) {
-//       console.error('Error:', error.message);
-//     }
-// }
 
-async function saveData(data, path) {
-  console.log('Attempting to save data:', data);
-  try {
-    const response = await fetch('/api/saveData', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({data, path})
-    });
-
-    console.log('saveData response status:', response.status);
-    console.log('save Data response:', response);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    console.log('Data saved successfully');
-  } catch (error) {
-    console.error('Error:', error.message);
-  }
+async function setUserDropdownSelection() {    
+    const user = await getFile('current-user.json');
+    const userName = user.shopperName.firstName.toLowerCase();
+    let element = document.getElementById('users-dropdown');
+    element.value = userName;
 }
 
+// set the drop to display the current user
+setUserDropdownSelection();
 
-function login(e) {
+// set the profile pic
+setProfilePic();
+
+
+async function login(e) {
+    // get users from users db
+    const users = await getFile('users-db.json');
+
     // identify user based on dropdown selection
-    let user = users[document.getElementById("users-dropdown").value];
+    const user = users[document.getElementById("users-dropdown").value];
+
+    // console.log user data instead of switching to that user
     if (e?.shiftKey) {
-      return console.log(JSON.stringify(user, null, ' '));
+        return console.log(JSON.stringify(user, null, ' '));
     };
-    saveData(user, 'server/pseudo-db/users-db.json');
+
+    try {
+        // update the current user JSON file 
+        await saveFile(user, 'server/pseudo-db/current-user.json');
+        // console.log('LOGIN saveData response: ', response.ok, response)
+
+
+        // save function needs to complete before profile pic can be set
+        setTimeout(() => {
+            setProfilePic();
+        },1000);
+    } catch (error) {
+        console.error('Error during login:', error);
+    }
 }
 
 document.getElementById("login-btn").addEventListener("click", login);
@@ -78,26 +65,3 @@ function updateProgressBar() {
         }
     }, 1000);
 }
-
-// Event listeners
-// document.addEventListener('DOMContentLoaded', () => {
-//     // const premiumButton = document.getElementById('premium-btn');
-//     // premiumButton.addEventListener('click', initializeDropin);
-    
-//     const playButton = document.getElementById('play-button');
-//     playButton.addEventListener('click', () => {
-//         togglePlay();
-//         if (isPlaying) {
-//             updateProgressBar();
-//         }
-//     });
-
-//     // Check if we need to start or finalize the checkout
-//     if (!sessionId) {
-//         // No session ID, so we're starting a new checkout
-//         // We don't auto-start the checkout here, it will be triggered by the premium button
-//     } else {
-//         // Existing session: complete Checkout
-//         finalizeCheckout();
-//     }
-// });

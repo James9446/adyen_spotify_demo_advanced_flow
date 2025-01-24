@@ -1,3 +1,6 @@
+// set the profile pic
+setProfilePic();
+
 // Used to finalize a checkout call in case of redirect
 const urlParams = new URLSearchParams(window.location.search);
 const sessionId = urlParams.get("sessionId");
@@ -32,7 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function startCheckout() {
     try {
         // const user = await callServer('/api/read-data');
-        const user = await getData("/api/getUser");
+        const user = await getFile('current-user.json');
         console.log('user: ', user.shopperName.firstName);
         const checkoutDetails = {
             amount: {
@@ -81,12 +84,12 @@ async function startCheckout() {
         console.error("Error in paymentMethods:", error);
         // alert("Error occurred. Look at console for details");
     }
-}
+};
 
 // Create and configure checkout instance
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     const clientKey = await getData('api/getClientKey');
-    const user = await getData("/api/getUser");
+    const user = await getFile('current-user.json');
     const amount = checkoutDetails.amount;
     const locale = checkoutDetails.locale;
     const countryCode = checkoutDetails.countryCode;
@@ -216,18 +219,9 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     };
 
     return new AdyenCheckout(configuration);
-}
+};
 
-async function makePaymentsCall(paymentData) {
-    try {
-        console.log("makePaymentsCall Data: ", paymentData);
-        const paymentResult = await callServer(`/api/payments`, paymentData);
-        return paymentResult;
-    } catch (error) {
-        console.error(error);
-        alert("Error occurred. Look at console for details");
-    }
-}
+
 
 // Handle redirects after card challenges
 async function handleRedirect(redirectResult) {
@@ -240,7 +234,9 @@ async function handleRedirect(redirectResult) {
         console.error(error);
         alert("Error occurred. Look at console for details");
     }
-}
+};
+
+
 
 // Handle the payment result
 function handlePaymentResult(response, component) {
@@ -276,7 +272,9 @@ function handlePaymentResult(response, component) {
             component ? component.setStatus('error') : console.log('no component');
             break;
     }
-}
+};
+
+
 
 // Call server
 async function callServer(url, data) {
@@ -289,90 +287,4 @@ async function callServer(url, data) {
     });
 
     return await response.json();
-}
-
-// async function callServer(url, data, method='POST') {
-//     try {
-//       const response = await fetch(url, {
-//         method,
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(data)
-//       });
-  
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! status: ${response.status}`);
-//       }
-  
-//       return await response.json();
-
-//     } catch (error) {
-//       console.error('Error:', error.message);
-//       alert('Failed to save data. Please try again.');
-//     }
-// }
-
-// ----- Utility functions ------
-
-async function getData(url) {
-    try {
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        // console.log('Data retrieved successfully: ', data);
-        return data;
-    } catch (error) {
-        console.error('Error fetching data:', error.message);
-        alert('Failed to retrieve data. Please try again.');
-        return null;
-    }
-}
-
-function changeCheckoutTitle(newTitle) {
-    const titleElement = document.getElementById("checkout-title");
-    if (titleElement) {
-        titleElement.textContent = newTitle;
-    } else {
-        console.error("Checkout title element not found");
-    }
-}
-
-function addPaymentCompleteMessage(
-    message = "Welcome to Spotify Premium! Enjoy music like never before!",
-) {
-    const container = document.querySelector(".checkout-container");
-
-    // Add payment complete message after session is complete
-    const paymentCompleteMessage = document.createElement("p");
-    paymentCompleteMessage.textContent = message;
-    paymentCompleteMessage.style.marginTop = "20px";
-    container.appendChild(paymentCompleteMessage);
-}
-
-function addButton(href = "/", buttonText = "Explore Your Benefits") {
-    const container = document.querySelector(".checkout-container");
-
-    // Add button to navigate back to homepage
-    const button = document.createElement("button");
-    button.textContent = buttonText;
-    button.style.marginTop = "20px";
-    button.style.padding = "10px 20px";
-    button.style.backgroundColor = "#1DB954";
-    button.style.color = "white";
-    button.style.border = "none";
-    button.style.borderRadius = "20px";
-    button.style.cursor = "pointer";
-
-    button.addEventListener("click", () => {
-        window.location.href = href; // Adjust this if your homepage URL is different
-    });
-
-    container.appendChild(button);
-}
-
-// document.getElementById("login-btn").addEventListener("click", getUser);
+};
