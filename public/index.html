@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotify - Web Player</title>
     <!-- <script src="index.js" defer></script> -->
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="./css/main.css">
     <script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.js"></script>
     <link rel="stylesheet" href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.css" />
 </head>
@@ -21,11 +21,22 @@
                 <a href="#" class="nav-item">Your Library</a>
                 <a href="#" class="nav-item">Create Playlist</a>
                 <a href="#" class="nav-item">Liked Songs</a>
+                <div>   
+                    <h2>Login</h2>
+                    <select id="users-dropdown">
+                        <option value="luigi">Luigi</option>
+                        <option value="mario">Mario</option>
+                        <option value="homer">Homer Simpson</option>
+                    </select>
+                    <button id="login-btn">Login</button>
+                </div>
             </nav>
         </div>
         <div class="main-content">
             <header class="header">
-                <h1>Good afternoon</h1>
+                <div class="profile-picture">
+                    <img id="profile-picture" src="./images/generic.png" alt="Profile Picture" class="circular-image">
+                </div>
             </header>
             <div class="content">
                 <h2>Recently played</h2>
@@ -73,5 +84,7 @@
         </div>
         <div>0:00 / 3:30</div>
     </div>
+    <script src="./js/utilities.js"></script>
+    <script src="./js/index.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+const fs = require('fs').promises;
 const { uuid } = require("uuidv4");
 const { hmacValidator } = require("@adyen/api-library");
 const { Client, Config, CheckoutAPI, Types } = require("@adyen/api-library");
@@ -38,6 +39,7 @@ app.post("/api/paymentMethods", async (req, res) => {
     const shopperLocale = req.body.locale;
     const channel = req.body.channel;
     const lineItems = req.body.lineItems;
+    const shopperReference = req.body.shopperReference;
 
     const paymentMethodRequest = {
       amount,
@@ -46,8 +48,9 @@ app.post("/api/paymentMethods", async (req, res) => {
       shopperLocale,
       channel,
       lineItems,
+      shopperReference
     };
-    // console.log("request body:", paymentMethodRequest);
+    console.log("request body:", paymentMethodRequest);
     const response = await checkout.PaymentsApi.paymentMethods(
       paymentMethodRequest,
       {
@@ -71,77 +74,10 @@ app.post("/api/paymentMethods", async (req, res) => {
 app.post("/api/payments", async (req, res) => {
   console.log("/payment");
   try {
-    // console.log("payment request body", req.body);
-    const amount = req.body.amount;
-    const reference = req.body.reference;
-    const paymentMethod = req.body.paymentData.paymentMethod;
-    const riskData = req.body.paymentData.riskData;
-    const lineItems = req.body.lineItems;
     const gitpodURL = req.body.gitpodURL;
 
-    console.log("paymentMethod: ", paymentMethod);
-
-    // Create the request object(s)
-    // const paymentRequest = {
-    //   amount,
-    //   reference,
-    //   paymentMethod,
-    //   riskData,
-    //   returnUrl: "https://207a399b-3262-4a38-908f-787ffe2ae23d-00-1ry6k6zlua0j2.picard.replit.dev/checkout",
-    //   merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-    //   lineItems,
-    //   shopperEmail: "youremail@email.com",
-    //   shopperName: {
-    //     firstName: "Testperson-se",
-    //     gender: "UNKNOWN",
-    //     lastName: "Approved"
-    //   },
-    //   shopperReference: uuid(),
-    //   additionalData: {
-    //     "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
-    //   }
-    // };
-
-    const countryCode = req.body.countryCode;
-    const shopperLocale = req.body.locale;
-    // const channel = req.body.channel;
-    // const lineItems = req.body.lineItems;
-
-    const paymentRequest = {
+    let paymentRequest = {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-      reference,
-      // paymentMethod: {
-      //   type: "klarna_account"
-      // },
-      paymentMethod,
-      amount,
-      shopperLocale,
-      countryCode,
-      riskData,
-      telephoneNumber: "+46 840 839 298",
-      shopperEmail: "youremail@email.com",
-      shopperName: {
-        firstName: "Testperson-se",
-        gender: "UNKNOWN",
-        lastName: "Approved"
-      },
-      shopperReference: uuid(),
-      billingAddress: {
-        city: "San Francisco",
-        stateOrProvince: "CA",
-        country: "US",
-        houseNumberOrName: "1",
-        postalCode: "12345",
-        street: "Stargatan"
-      },
-      deliveryAddress: {
-        city: "San Francsico",
-        stateOrProvince: "CA",
-        country: "US",
-        houseNumberOrName: "1",
-        postalCode: "12345",
-        street: "Stargatan"
-      },
       returnUrl: `${gitpodURL}/checkout`,
       lineItems: [ {
         quantity: "1",
@@ -160,14 +96,12 @@ app.post("/api/payments", async (req, res) => {
         productUrl: "URL_TO_PURCHASED_ITEM",
         imageUrl: "URL_TO_PICTURE_OF_PURCHASED_ITEM"
       } ]
-      // additionalData: {
-      //   "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
-      // }
     }
+
+    paymentRequest = Object.assign(paymentRequest, req.body)
 
     console.log("payment request object", paymentRequest);
 
-    // console.log('request body:', paymentRequest);
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
     });
@@ -182,6 +116,9 @@ app.post("/api/payments", async (req, res) => {
       .json({ error: "An error occurred during payment processing" });
   }
 });
+
+
+
 
 // Payment Details
 app.post("/api/payments/details", async (req, res) => {
@@ -264,8 +201,69 @@ app.get("/thank-you", (req, res) => {
 
 // Serve the clientKey to the client
 app.get("/api/getClientKey", (req, res) => {
-  res.json({ clientKey: process.env.ADYEN_CLIENT_KEY });
+  const clientKey = process.env.ADYEN_CLIENT_KEY
+  res.json(clientKey);
 });
+
+// PSEUDO DB - SIMPLE JSON FILES
+
+app.post('/api/getFile', async (req, res) => {
+  const filePath = `server/pseudo-db/${req.body.file}`;
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    const jsonData = JSON.parse(data);
+    console.log('jsonData: ', jsonData);
+    res.json(jsonData);
+  } catch (err) {
+    console.error(err);
+    if (err.code === 'ENOENT') {
+      return res.status(404).send('File not found');
+    }
+    res.status(500).send('Error reading file');
+  }
+});
+
+
+app.post('/api/saveFile', async (req, res) => {
+  // const { data, path: filePath } = req.body;
+
+  const data = req.body.data;
+  const filePath = req.body.path;
+
+  if (!data || !filePath) {
+    return res.status(400).json({ error: 'Missing data or file path' });
+  }
+
+  // const fullPath = path.resolve(filePath);
+
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    console.log(`Data saved successfully to ${filePath}`);
+    res.status(200).json({ message: 'Data saved successfully' });
+  } catch (err) {
+    console.error('Error writing to file:', err);
+    res.status(500).json({ error: 'Error writing to file', details: err.message });
+  }
+});
+
+
+// app.post('/api/saveFile', async (req, res) => {
+//   // console.log('Received request to /api/saveFile');
+//   // console.log('saveFile request body:', req.body);
+
+//   const data = req.body.data;
+//   const filePath = req.body.path;
+
+//   try {
+//     await fs.writeFile(filePath, JSON.stringify(data));
+//     console.log('Data saved successfully');
+//     res.status(200).json({ message: 'Data saved successfully' });
+//   } catch (err) {
+//     console.error('Error writing to file:', err);
+//     res.status(500).json({ error: 'Error writing to file' });
+//   }
+// });
+
 
 // Start server
 app.listen(port, () => {

@@ -1,28 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
 
+
 body, .adyen-checkout__label__text, .adyen-checkout__input {
   font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .adyen-checkout__card__cardNumber__input {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .adyen-checkout__card__exp-date__input {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .adyen-checkout__card__cvc__input {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .adyen-checkout__card__holderName__input {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
+}
+
+
+.js-iframe-input {
+  color: #FFFFFF !important;
+}
+
+.input-field {
+  color: #FFFFFF !important;
+}
+
+.chckt-input-field--validated {
+  color: #FFFFFF !important;
+} 
+
+.js-chckt-input-field-validated {
+  color: #FFFFFF !important;
+}
+
+.js-iframe-input, .input-field {
+  color: #FFFFFF !important;
+}
+
+.chckt-input-field--error {
+  color: #FFFFFF !important;
 }
 
 .adyen-checkout__label__text {
   color: #B3B3B3;
 }
+
+
 
 .adyen-checkout__card__form {
   background-color: #282828;
@@ -168,3 +196,59 @@ body, .adyen-checkout__label__text, .adyen-checkout__input {
   border: 1px solid #1DB954;
   box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.25);
 }
+
+
+
+
+/* 
+.adyen-checkout__card__cardNumber__input iframe,
+.adyen-checkout__card__exp-date__input iframe,
+.adyen-checkout__card__cvc__input iframe,
+.adyen-checkout__card__holderName__input iframe {
+  color: #FFFFFF !important;
+}
+
+.adyen-checkout__input iframe {
+  color: #FFFFFF !important;
+}
+
+.adyen-checkout__card__form iframe {
+  color: #FFFFFF !important;
+}
+
+
+.adyen-checkout iframe {
+  color: #FFFFFF !important;
+}
+
+
+
+
+
+
+.adyen-checkout__input,
+.adyen-checkout__card__cardNumber__input,
+.adyen-checkout__card__exp-date__input,
+.adyen-checkout__card__cvc__input,
+.adyen-checkout__card__holderName__input,
+.adyen-checkout__card__form input {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+
+.adyen-checkout__input::placeholder,
+.adyen-checkout__card__cardNumber__input::placeholder,
+.adyen-checkout__card__exp-date__input::placeholder,
+.adyen-checkout__card__cvc__input::placeholder,
+.adyen-checkout__card__holderName__input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+
+.adyen-checkout iframe {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+} 
+
+*/

@@ -6,11 +6,11 @@
     <title>Checkout - Spotify Clone</title>
     <script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.js"></script>
     <link rel="stylesheet" href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.css" />
-    <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="drop-in.css">
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="./css/drop-in.css">
 </head>
 <body>
-  <div class="container">
+<div class="container">
     <div class="sidebar">
         <a href="/">
             <img src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_White.png" alt="Spotify" class="logo">
@@ -23,11 +23,24 @@
             <a href="#" class="nav-item">Liked Songs</a>
         </nav>
     </div>
-    <div class="checkout-container">
-        <h1 id="checkout-title">Complete Your Purchase</h1>
-        <div id="dropin-container"></div>
+    <div class="main-content">
+        <header class="header">
+            <div class="profile-picture">
+                <img id="profile-picture" src="./images/generic.png" alt="Profile Picture" class="circular-image">
+            </div>
+        </header>
+        <div class="checkout-container">
+            <h1 id="checkout-title">Complete Your Purchase</h1>
+            <div class="save-payment-container">
+                <input type="checkbox" id="save-payment">
+                <label for="save-payment">Save your payment details for future use</label>
+            </div>
+            <div id="dropin-container"></div>
+        </div>
+
     </div>
-    <script src="checkout.js"></script>
-  </div>
+</div>
+    <script src="./js/utilities.js"></script>
+    <script src="./js/checkout.js"></script>
 </body>
 </html>

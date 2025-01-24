@@ -1,3 +1,6 @@
+// set the profile pic
+setProfilePic();
+
 // Used to finalize a checkout call in case of redirect
 const urlParams = new URLSearchParams(window.location.search);
 const sessionId = urlParams.get("sessionId");
@@ -5,8 +8,12 @@ const redirectResult = urlParams.get("redirectResult");
 
 // gitpod url
 const gitpodURL = window.location.href.split('/checkout')[0];
-console.log('gitpodURL', gitpodURL);
 
+// Tokenization
+function shouldSavePayment() {
+    checkboxValue = document.getElementById('save-payment').checked;
+    return checkboxValue;
+};
 
 // Trigger the checkout process on page load
 document.addEventListener("DOMContentLoaded", async () => {
@@ -27,6 +34,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Start the checkout process
 async function startCheckout() {
     try {
+        // const user = await callServer('/api/read-data');
+        const user = await getFile('current-user.json');
+        console.log('user: ', user.shopperName.firstName);
         const checkoutDetails = {
             amount: {
                 value: 10000,
@@ -48,7 +58,8 @@ async function startCheckout() {
                     "imageUrl": "URL_TO_PICTURE_OF_PURCHASED_ITEM"
                 }
             ],
-            gitpodURL
+            gitpodURL,
+            shopperReference: user.shopperReference
         };
         // Call the server to create a payment session
         const paymentMethods = await callServer(
@@ -56,8 +67,7 @@ async function startCheckout() {
             checkoutDetails,
         );
 
-        console.log('paymentMethods: ', paymentMethods);
-
+        console.log('paymentMehods: ', paymentMethods);
         // Create checkout instance using the session returned by the server
         const checkout = await createCheckoutInstance({
             paymentMethods,
@@ -74,18 +84,17 @@ async function startCheckout() {
         console.error("Error in paymentMethods:", error);
         // alert("Error occurred. Look at console for details");
     }
-}
+};
 
 // Create and configure checkout instance
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
-    const clientKey = await getClientKey();
+    const clientKey = await getData('api/getClientKey');
+    const user = await getFile('current-user.json');
     const amount = checkoutDetails.amount;
     const locale = checkoutDetails.locale;
     const countryCode = checkoutDetails.countryCode;
     const lineItems = checkoutDetails.lineItems;
     const gitpodURL = checkoutDetails.gitpodURL;
-
-    // console.log("amount createCheckoutInstance", amount);
 
     const configuration = {
         clientKey,
@@ -102,20 +111,38 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 console.log("onSubmit triggered");
                 console.log("state: ", state);
                 console.log("component: ", component);
+                console.log("paymentMethods: ", paymentMethods);
 
-                const paymentData = state.data;
                 const reference = crypto.randomUUID();
-
-                // Make a POST /payments request from your server.
-                const result = await callServer(`/api/payments`, {
-                    paymentData,
+                
+                let paymentsBody = {};
+                const paymentsProps = {
                     countryCode,
                     locale,
                     amount,
                     reference,
                     lineItems,
                     gitpodURL,
-                });
+                };
+                const additionalTokenizationProps = {
+                    shopperInteraction: state.data.paymentMethod.storedPaymentMethodId ? "ContAuth" : "Ecommerce",
+                    recurringProcessingModel: "CardOnFile", 
+                    storePaymentMethod: state.data.paymentMethod.storedPaymentMethodId ? false : true,
+                }
+
+                const shouldTokenize = shouldSavePayment();
+
+                if (shouldTokenize || state.data.paymentMethod.storedPaymentMethodId) { 
+                    paymentsBody = Object.assign(state.data, user, paymentsProps, additionalTokenizationProps);
+                } else {
+                    paymentsBody = Object.assign(state.data, user, paymentsProps);
+                }
+
+                console.log('shouldTokenize: ', shouldTokenize);
+                console.log('paymentsBody: ', paymentsBody);
+
+                // Make a POST /payments request from your server.
+                const result = await callServer(`/api/payments`, paymentsBody);
 
                 console.log("result", result);
                 // If the payment is successful, redirect to the success page
@@ -125,14 +152,11 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     return;
                 }
 
-                const { resultCode, action, order, donationToken } = result;
-
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
-                if (action) {
+                if (result.action) {
                     component.handleAction(action);
                 } else {
-                    // component.setStatus(resultCode);
                     handlePaymentResult(result, component);
                 }
             } catch (error) {
@@ -169,11 +193,9 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     return;
                 }
 
-                const { resultCode, action, order, donationToken } = result;
-
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
-                if (action) {
+                if (result.action) {
                     component.handleAction(action);
                 } else {
                     handlePaymentResult(result, component);
@@ -197,18 +219,9 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     };
 
     return new AdyenCheckout(configuration);
-}
+};
 
-async function makePaymentsCall(paymentData) {
-    try {
-        console.log("makePaymentsCall Data: ", paymentData);
-        const paymentResult = await callServer(`/api/payments`, paymentData);
-        return paymentResult;
-    } catch (error) {
-        console.error(error);
-        alert("Error occurred. Look at console for details");
-    }
-}
+
 
 // Handle redirects after card challenges
 async function handleRedirect(redirectResult) {
@@ -221,7 +234,9 @@ async function handleRedirect(redirectResult) {
         console.error(error);
         alert("Error occurred. Look at console for details");
     }
-}
+};
+
+
 
 // Handle the payment result
 function handlePaymentResult(response, component) {
@@ -257,7 +272,9 @@ function handlePaymentResult(response, component) {
             component ? component.setStatus('error') : console.log('no component');
             break;
     }
-}
+};
+
+
 
 // Call server
 async function callServer(url, data) {
@@ -270,54 +287,4 @@ async function callServer(url, data) {
     });
 
     return await response.json();
-}
-
-// ----- Utility functions ------
-
-async function getClientKey() {
-    const response = await fetch("/api/getClientKey");
-    const data = await response.json();
-    return data.clientKey;
-}
-
-function changeCheckoutTitle(newTitle) {
-    const titleElement = document.getElementById("checkout-title");
-    if (titleElement) {
-        titleElement.textContent = newTitle;
-    } else {
-        console.error("Checkout title element not found");
-    }
-}
-
-function addPaymentCompleteMessage(
-    message = "Welcome to Spotify Premium! Enjoy music like never before!",
-) {
-    const container = document.querySelector(".checkout-container");
-
-    // Add payment complete message after session is complete
-    const paymentCompleteMessage = document.createElement("p");
-    paymentCompleteMessage.textContent = message;
-    paymentCompleteMessage.style.marginTop = "20px";
-    container.appendChild(paymentCompleteMessage);
-}
-
-function addButton(href = "/", buttonText = "Explore Your Benefits") {
-    const container = document.querySelector(".checkout-container");
-
-    // Add button to navigate back to homepage
-    const button = document.createElement("button");
-    button.textContent = buttonText;
-    button.style.marginTop = "20px";
-    button.style.padding = "10px 20px";
-    button.style.backgroundColor = "#1DB954";
-    button.style.color = "white";
-    button.style.border = "none";
-    button.style.borderRadius = "20px";
-    button.style.cursor = "pointer";
-
-    button.addEventListener("click", () => {
-        window.location.href = href; // Adjust this if your homepage URL is different
-    });
-
-    container.appendChild(button);
-}
+};
