@@ -31,7 +31,6 @@ users.mario = {
     shopperReference: "6130514a-c0da-4c26-9ff3-ff5d68a3c48b",
     shopperEmail: "mario@aol.com",
     telephoneNumber: "+46 876 539 090",
-    name: "Luigi Mario",
     shopperName: {
         firstName: "Mario",
         gender: "Male",

@@ -5,7 +5,6 @@ const redirectResult = urlParams.get("redirectResult");
 
 // gitpod url
 const gitpodURL = window.location.href.split('/checkout')[0];
-console.log('gitpodURL', gitpodURL);
 
 // Tokenization
 function shouldSavePayment() {
@@ -34,7 +33,7 @@ async function startCheckout() {
     try {
         // const user = await callServer('/api/read-data');
         const user = await getData("/api/getUser");
-        console.log('user: ', user);
+        console.log('user: ', user.shopperName.firstName);
         const checkoutDetails = {
             amount: {
                 value: 10000,
@@ -86,14 +85,13 @@ async function startCheckout() {
 
 // Create and configure checkout instance
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
-    const response = await getData('api/getClientKey');
-    const clientKey = response.clientKey
+    const clientKey = await getData('api/getClientKey');
+    const user = await getData("/api/getUser");
     const amount = checkoutDetails.amount;
     const locale = checkoutDetails.locale;
     const countryCode = checkoutDetails.countryCode;
     const lineItems = checkoutDetails.lineItems;
     const gitpodURL = checkoutDetails.gitpodURL;
-    const user = await getData("/api/getUser");
 
     const configuration = {
         clientKey,
@@ -112,12 +110,10 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 console.log("component: ", component);
                 console.log("paymentMethods: ", paymentMethods);
 
-                // const paymentData = state.data;
                 const reference = crypto.randomUUID();
                 
                 let paymentsBody = {};
                 const paymentsProps = {
-                    // paymentData,
                     countryCode,
                     locale,
                     amount,
@@ -130,6 +126,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     recurringProcessingModel: "CardOnFile", 
                     storePaymentMethod: state.data.paymentMethod.storedPaymentMethodId ? false : true,
                 }
+
                 const shouldTokenize = shouldSavePayment();
 
                 if (shouldTokenize || state.data.paymentMethod.storedPaymentMethodId) { 
@@ -152,14 +149,11 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     return;
                 }
 
-                const { resultCode, action, order, donationToken } = result;
-
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
-                if (action) {
+                if (result.action) {
                     component.handleAction(action);
                 } else {
-                    // component.setStatus(resultCode);
                     handlePaymentResult(result, component);
                 }
             } catch (error) {
@@ -196,11 +190,9 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     return;
                 }
 
-                const { resultCode, action, order, donationToken } = result;
-
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
-                if (action) {
+                if (result.action) {
                     component.handleAction(action);
                 } else {
                     handlePaymentResult(result, component);
@@ -323,29 +315,23 @@ async function callServer(url, data) {
 
 // ----- Utility functions ------
 
-// async function getData(url) {
-//     const response = await fetch(url);
-//     const data = await response.json();
-//     return data;
-// }
-
 async function getData(url) {
     try {
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Data retrieved successfully:', data);
-      return data;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        // console.log('Data retrieved successfully: ', data);
+        return data;
     } catch (error) {
-      console.error('Error fetching data:', error.message);
-      alert('Failed to retrieve data. Please try again.');
-      return null;
+        console.error('Error fetching data:', error.message);
+        alert('Failed to retrieve data. Please try again.');
+        return null;
     }
-  }
+}
 
 function changeCheckoutTitle(newTitle) {
     const titleElement = document.getElementById("checkout-title");

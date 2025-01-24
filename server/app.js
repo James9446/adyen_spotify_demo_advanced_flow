@@ -74,76 +74,10 @@ app.post("/api/paymentMethods", async (req, res) => {
 app.post("/api/payments", async (req, res) => {
   console.log("/payment");
   try {
-    // console.log("payment request body", req.body);
-
-    //
-    // const amount = req.body.amount;
-    // const reference = req.body.reference;
-    // const paymentMethod = req.body.paymentData.paymentMethod;
-    // const riskData = req.body.paymentData.riskData;
-    // const lineItems = req.body.lineItems;
     const gitpodURL = req.body.gitpodURL;
-
-    // console.log("paymentMethod: ", paymentMethod);
-
-    // Create the request object(s)
-    // const paymentRequest = {
-    //   amount,
-    //   reference,
-    //   paymentMethod,
-    //   riskData,
-    //   returnUrl: "https://207a399b-3262-4a38-908f-787ffe2ae23d-00-1ry6k6zlua0j2.picard.replit.dev/checkout",
-    //   merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-    //   lineItems,
-    //   shopperEmail: "youremail@email.com",
-    //   shopperName: {
-    //     firstName: "Testperson-se",
-    //     gender: "UNKNOWN",
-    //     lastName: "Approved"
-    //   },
-    //   shopperReference: uuid(),
-    //   additionalData: {
-    //     "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
-    //   }
-    // };
-
-    const countryCode = req.body.countryCode;
-    const shopperLocale = req.body.locale;
-    // const channel = req.body.channel;
-    // const lineItems = req.body.lineItems;
 
     let paymentRequest = {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-      // reference,
-      // paymentMethod,
-      // amount,
-      // shopperLocale,
-      // countryCode,
-      // riskData,
-      // shopperReference: uuid(),
-      // telephoneNumber: "+46 840 839 298",
-      // shopperEmail: "youremail@email.com",
-      // shopperName: {
-      //   firstName: "Testperson-se",
-      //   gender: "UNKNOWN",
-      //   lastName: "Approved"
-      // },
-      // billingAddress: {
-      //   city: "San Francisco",
-      //   stateOrProvince: "CA",
-      //   country: "US",
-      //   houseNumberOrName: "1",
-      //   postalCode: "12345",
-      //   street: "Stargatan"
-      // },
-      // deliveryAddress: {
-      //   city: "San Francsico",
-      //   stateOrProvince: "CA",
-      //   country: "US",
-      //   houseNumberOrName: "1",
-      //   postalCode: "12345",
-      //   street: "Stargatan"
-      // },
       returnUrl: `${gitpodURL}/checkout`,
       lineItems: [ {
         quantity: "1",
@@ -162,16 +96,12 @@ app.post("/api/payments", async (req, res) => {
         productUrl: "URL_TO_PURCHASED_ITEM",
         imageUrl: "URL_TO_PICTURE_OF_PURCHASED_ITEM"
       } ]
-      // additionalData: {
-      //   "openinvoicedata.merchantData" : "eyJjdXN0b21lcl9hY ... "
-      // }
     }
 
     paymentRequest = Object.assign(paymentRequest, req.body)
 
     console.log("payment request object", paymentRequest);
 
-    // console.log('request body:', paymentRequest);
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
     });
@@ -186,6 +116,9 @@ app.post("/api/payments", async (req, res) => {
       .json({ error: "An error occurred during payment processing" });
   }
 });
+
+
+
 
 // Payment Details
 app.post("/api/payments/details", async (req, res) => {
@@ -268,7 +201,8 @@ app.get("/thank-you", (req, res) => {
 
 // Serve the clientKey to the client
 app.get("/api/getClientKey", (req, res) => {
-  res.json({ clientKey: process.env.ADYEN_CLIENT_KEY });
+  const clientKey = process.env.ADYEN_CLIENT_KEY
+  res.json(clientKey);
 });
 
 // PSEUDO DB - SIMPLE JSON FILES
