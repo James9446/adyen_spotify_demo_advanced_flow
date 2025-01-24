@@ -13,17 +13,18 @@ function shouldSavePayment() {
     return checkboxValue;
 };
 
-function getUser(e) {
-    // identify user based on dropdown selection
-    let user = users[document.getElementById("usersDropdown").value];
-    // if (e.shiftKey) {
-    //   return console.log(JSON.stringify(user, null, ' '));
-    // };
-    return user;
-}
+// function getUser(e) {
+//     // identify user based on dropdown selection
+//     let user = users[document.getElementById("users-dropdown").value];
+//     if (e?.shiftKey) {
+//       return console.log(JSON.stringify(user, null, ' '));
+//     };
+//     startCheckout();
+//     return user;
+// }
 
-const user = getUser();
-console.log("user: ", user);
+// const user = getUser();
+// console.log("user: ", user);
 
 // Trigger the checkout process on page load
 document.addEventListener("DOMContentLoaded", async () => {
@@ -44,6 +45,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Start the checkout process
 async function startCheckout() {
     try {
+        // const user = await callServer('/api/read-data');
+        const user = await getData("/api/getUser");
+        console.log('user: ', user);
         const checkoutDetails = {
             amount: {
                 value: 10000,
@@ -95,7 +99,8 @@ async function startCheckout() {
 
 // Create and configure checkout instance
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
-    const clientKey = await getClientKey();
+    const response = await getData('api/getClientKey');
+    const clientKey = response.clientKey
     const amount = checkoutDetails.amount;
     const locale = checkoutDetails.locale;
     const countryCode = checkoutDetails.countryCode;
@@ -309,13 +314,53 @@ async function callServer(url, data) {
     return await response.json();
 }
 
+// async function callServer(url, data, method='POST') {
+//     try {
+//       const response = await fetch(url, {
+//         method,
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify(data)
+//       });
+  
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`);
+//       }
+  
+//       return await response.json();
+
+//     } catch (error) {
+//       console.error('Error:', error.message);
+//       alert('Failed to save data. Please try again.');
+//     }
+// }
+
 // ----- Utility functions ------
 
-async function getClientKey() {
-    const response = await fetch("/api/getClientKey");
-    const data = await response.json();
-    return data.clientKey;
-}
+// async function getData(url) {
+//     const response = await fetch(url);
+//     const data = await response.json();
+//     return data;
+// }
+
+async function getData(url) {
+    try {
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Data retrieved successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching data:', error.message);
+      alert('Failed to retrieve data. Please try again.');
+      return null;
+    }
+  }
 
 function changeCheckoutTitle(newTitle) {
     const titleElement = document.getElementById("checkout-title");
@@ -358,3 +403,5 @@ function addButton(href = "/", buttonText = "Explore Your Benefits") {
 
     container.appendChild(button);
 }
+
+// document.getElementById("login-btn").addEventListener("click", getUser);

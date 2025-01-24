@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+const fs = require('fs').promises;
 const { uuid } = require("uuidv4");
 const { hmacValidator } = require("@adyen/api-library");
 const { Client, Config, CheckoutAPI, Types } = require("@adyen/api-library");
@@ -269,6 +270,43 @@ app.get("/thank-you", (req, res) => {
 app.get("/api/getClientKey", (req, res) => {
   res.json({ clientKey: process.env.ADYEN_CLIENT_KEY });
 });
+
+// PSEUDO DB - SIMPLE JSON FILES
+
+app.post('/api/saveData', async (req, res) => {
+  console.log('Received request to /api/saveData');
+  console.log('saveData request body:', req.body);
+
+  const data = req.body.data;
+  const filePath = req.body.path;
+
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data));
+    console.log('Data saved successfully');
+    res.status(200).json({ message: 'Data saved successfully' });
+  } catch (err) {
+    console.error('Error writing to file:', err);
+    res.status(500).json({ error: 'Error writing to file' });
+  }
+});
+
+app.get('/api/getUser', async (req, res) => {
+  const filePath = 'server/pseudo-db/users-db.json'; // Specify the file path
+
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    const jsonData = JSON.parse(data);
+    console.log('jsonData: ', jsonData);
+    res.json(jsonData);
+  } catch (err) {
+    console.error(err);
+    if (err.code === 'ENOENT') {
+      return res.status(404).send('File not found');
+    }
+    res.status(500).send('Error reading file');
+  }
+});
+
 
 // Start server
 app.listen(port, () => {
