@@ -72,13 +72,25 @@ async function setProfilePic() {
     try {
         const user = await getFile('current-user.json');
         const userName = user.shopperName.firstName.toLowerCase();
-        const newSrc = `./images/${userName}.png`
+        const isRandomUser = ["luigi", "mario", "homer"].includes(userName) ? false : true; 
+        const newSrc = isRandomUser ? `./images/generic.png` : `./images/${userName}.png`
         document.getElementById('profile-picture').src = newSrc;
     }  catch (error) {
         console.error('Error:', error.message);
         throw error;
     }
 }
+
+
+async function logUser() {
+    const user = await getFile('current-user.json');
+    console.log(JSON.stringify(user, null, 2));
+}
+
+document.getElementById("profile-picture").addEventListener("click", logUser);
+
+
+
 
 function changeCheckoutTitle(newTitle) {
     const titleElement = document.getElementById("checkout-title");
