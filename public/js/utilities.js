@@ -72,7 +72,8 @@ async function setProfilePic() {
     try {
         const user = await getFile('current-user.json');
         const userName = user.shopperName.firstName.toLowerCase();
-        const newSrc = `./images/${userName}.png`
+        const isRandomUser = ["luigi", "mario", "homer"].includes(userName) ? false : true; 
+        const newSrc = isRandomUser ? `./images/generic.png` : `./images/${userName}.png`
         document.getElementById('profile-picture').src = newSrc;
     }  catch (error) {
         console.error('Error:', error.message);

@@ -2,8 +2,9 @@
 async function setUserDropdownSelection() {    
     const user = await getFile('current-user.json');
     const userName = user.shopperName.firstName.toLowerCase();
+    const isRandomUser = ["luigi", "mario", "homer"].includes(userName) ? false : true; 
     let element = document.getElementById('users-dropdown');
-    element.value = userName;
+    element.value = isRandomUser ? 'random' : userName;
 }
 
 // set the drop to display the current user
@@ -14,11 +15,19 @@ setProfilePic();
 
 
 async function login(e) {
-    // get users from users db
-    const users = await getFile('users-db.json');
+    
+    const selection = document.getElementById('users-dropdown').value;
 
     // identify user based on dropdown selection
-    const user = users[document.getElementById("users-dropdown").value];
+    let user;
+    if (selection === 'random') {
+        // generate one-time use random user
+        user = generateRandomUser();
+    } else {
+        // get users from users db
+        const users = await getFile('users-db.json');
+        user = users[selection];
+    };
 
     // console.log user data instead of switching to that user
     if (e?.shiftKey) {
@@ -42,6 +51,28 @@ async function login(e) {
 
 document.getElementById("login-btn").addEventListener("click", login);
 
+function generateRandomUser() {
+    const uuid = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
+    return {
+      shopperReference: uuid(),
+      shopperEmail: `user${Math.floor(Math.random() * 1000)}@example.com`,
+      telephoneNumber: `+1 ${Math.floor(Math.random() * 1000)}-${Math.floor(Math.random() * 1000)}-${Math.floor(Math.random() * 10000)}`,
+      shopperName: {
+        firstName: ['Alice', 'Bob', 'Charlie', 'Diana'][Math.floor(Math.random() * 4)],
+        gender: ['Male', 'Female', 'Other'][Math.floor(Math.random() * 3)],
+        lastName: ['Smith', 'Johnson', 'Williams', 'Brown'][Math.floor(Math.random() * 4)]
+      },
+      billingAddress: {
+        city: ['New York', 'Los Angeles', 'Chicago', 'Houston'][Math.floor(Math.random() * 4)],
+        stateOrProvince: ['NY', 'CA', 'IL', 'TX'][Math.floor(Math.random() * 4)],
+        country: 'US',
+        houseNumberOrName: Math.floor(Math.random() * 1000).toString(),
+        postalCode: Math.floor(10000 + Math.random() * 90000).toString(),
+        street: `${Math.floor(Math.random() * 1000)} Main St`
+      }
+    };
+  }
 
 
 // // Mock player functionality
