@@ -81,6 +81,17 @@ async function setProfilePic() {
     }
 }
 
+
+async function logUser() {
+    const user = await getFile('current-user.json');
+    console.log(JSON.stringify(user, null, 2));
+}
+
+document.getElementById("profile-picture").addEventListener("click", logUser);
+
+
+
+
 function changeCheckoutTitle(newTitle) {
     const titleElement = document.getElementById("checkout-title");
     if (titleElement) {

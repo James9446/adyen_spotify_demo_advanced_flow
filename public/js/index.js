@@ -31,7 +31,7 @@ async function login(e) {
 
     // console.log user data instead of switching to that user
     if (e?.shiftKey) {
-        return console.log(JSON.stringify(user, null, ' '));
+        return console.log(JSON.stringify(user, null, 2));
     };
 
     try {
