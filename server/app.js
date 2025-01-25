@@ -3,7 +3,7 @@ const path = require("path");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const fs = require('fs').promises;
-const { uuid } = require("uuidv4");
+const { uuid, regex } = require("uuidv4");
 const { hmacValidator } = require("@adyen/api-library");
 const { Client, Config, CheckoutAPI, Types } = require("@adyen/api-library");
 
@@ -50,15 +50,12 @@ app.post("/api/paymentMethods", async (req, res) => {
       lineItems,
       shopperReference
     };
-    console.log("request body:", paymentMethodRequest);
-    const response = await checkout.PaymentsApi.paymentMethods(
-      paymentMethodRequest,
-      {
+    // console.log("/paymentsMethods request object: ", paymentRequest);
+    const response = await checkout.PaymentsApi.paymentMethods( paymentMethodRequest, {
         idempotencyKey: uuid(),
-      },
-    );
+    });
 
-    // return the payment methods to the client i.e. return the CreateCheckoutSessionResponse object
+    // console.log("/paymentsMethods response object: ", response);
     res.json(response);
   } catch (err) {
     console.error(
@@ -72,7 +69,7 @@ app.post("/api/paymentMethods", async (req, res) => {
 
 // Make a Payment
 app.post("/api/payments", async (req, res) => {
-  console.log("/payment");
+  console.log("/payments start");
   try {
     const gitpodURL = req.body.gitpodURL;
 
@@ -100,12 +97,12 @@ app.post("/api/payments", async (req, res) => {
 
     paymentRequest = Object.assign(paymentRequest, req.body)
 
-    console.log("payment request object", paymentRequest);
+    // console.log("/payments request object: ", paymentRequest);
 
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
     });
-    console.log('Payment response: ', response);
+    // console.log("/payments response: ", response);
     res.json(response);
   } catch (err) {
     console.error(
@@ -125,20 +122,24 @@ app.post("/api/payments/details", async (req, res) => {
   console.log("/payment/details start");
   
   try {
-    const redirectResult = req.body.redirectResult;
+    const redirectResult = req.body?.redirectResult;
     console.log("redirectResult: ", redirectResult);
-    const response = await checkout.PaymentsApi.paymentsDetails(
-      {
-        "details": {
+
+    const paymentDetailsRequest = !redirectResult ? req.body.paymentData : {
+      "details": {
           "redirectResult": redirectResult
         }
-      },
+    };
+
+    // console.log("/payments/details request object: ", paymentDetailsRequest);
+    const response = await checkout.PaymentsApi.paymentsDetails(
+      paymentDetailsRequest,
       {
         idempotencyKey: uuid(),
       },
     );
 
-    // return the payment methods to the client i.e. return the CreateCheckoutSessionResponse object
+    // console.log('/payments/details Details response: ', response);
     res.json(response);
   } catch (err) {
     console.error(
@@ -212,7 +213,6 @@ app.post('/api/getFile', async (req, res) => {
   try {
     const data = await fs.readFile(filePath, 'utf8');
     const jsonData = JSON.parse(data);
-    console.log('jsonData: ', jsonData);
     res.json(jsonData);
   } catch (err) {
     console.error(err);
@@ -245,24 +245,6 @@ app.post('/api/saveFile', async (req, res) => {
     res.status(500).json({ error: 'Error writing to file', details: err.message });
   }
 });
-
-
-// app.post('/api/saveFile', async (req, res) => {
-//   // console.log('Received request to /api/saveFile');
-//   // console.log('saveFile request body:', req.body);
-
-//   const data = req.body.data;
-//   const filePath = req.body.path;
-
-//   try {
-//     await fs.writeFile(filePath, JSON.stringify(data));
-//     console.log('Data saved successfully');
-//     res.status(200).json({ message: 'Data saved successfully' });
-//   } catch (err) {
-//     console.error('Error writing to file:', err);
-//     res.status(500).json({ error: 'Error writing to file' });
-//   }
-// });
 
 
 // Start server

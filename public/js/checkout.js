@@ -44,7 +44,7 @@ async function startCheckout() {
             },
             countryCode: "US",
             locale: "en-US",
-            channel: "Web",
+            channel: "web",
             lineItems:[
                 {
                     "quantity": "1",
@@ -77,7 +77,19 @@ async function startCheckout() {
         // Create Drop-in component and mount it
         checkout
             .create("dropin", { 
-                instantPaymentTypes: ["googlepay"]
+                instantPaymentTypes: ["googlepay"],
+                paymentMethodsConfiguration: {
+                    card: {
+                        hasHolderName: true,
+                        holderNameRequired: true,
+                        enableStoreDetails: true,
+                        name: 'Credit or debit card',
+                        billingAddressRequired: true
+                    },
+                    threeDS2: {
+                        challengeWindowSize: '05'
+                    }
+                }
             })
             .mount(document.getElementById("dropin-container"));
     } catch (error) {
@@ -90,9 +102,10 @@ async function startCheckout() {
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     const clientKey = await getData('api/getClientKey');
     const user = await getFile('current-user.json');
-    const amount = checkoutDetails.amount;
-    const locale = checkoutDetails.locale;
     const countryCode = checkoutDetails.countryCode;
+    const locale = checkoutDetails.locale;
+    const amount = checkoutDetails.amount;
+    const channel = checkoutDetails.channel;
     const lineItems = checkoutDetails.lineItems;
     const gitpodURL = checkoutDetails.gitpodURL;
 
@@ -109,9 +122,9 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
         onSubmit: async (state, component) => {
             try {
                 console.log("onSubmit triggered");
-                console.log("state: ", state);
-                console.log("component: ", component);
-                console.log("paymentMethods: ", paymentMethods);
+                console.log("onSubmit state: ", state);
+                console.log("onSubmit component: ", component);
+                console.log("onSubmit paymentMethods: ", paymentMethods);
 
                 const reference = crypto.randomUUID();
                 
@@ -120,9 +133,15 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     countryCode,
                     locale,
                     amount,
+                    channel,
                     reference,
                     lineItems,
                     gitpodURL,
+                    authenticationData: {
+                        threeDSRequestData: {
+                            nativeThreeDS: "preferred"
+                        }
+                    },
                 };
                 const additionalTokenizationProps = {
                     shopperInteraction: state.data.paymentMethod.storedPaymentMethodId ? "ContAuth" : "Ecommerce",
@@ -155,7 +174,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
                 if (result.action) {
-                    component.handleAction(action);
+                    component.handleAction(result.action);
                 } else {
                     handlePaymentResult(result, component);
                 }
@@ -168,8 +187,8 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
         onAdditionalDetails: async (state, component) => {
             try {
                 console.log("onAdditionalDetails triggered");
-                console.log("state: ", state);
-                console.log("component: ", component);
+                console.log("onAdditionalDetails state: ", state);
+                console.log("onAdditionalDetails component: ", component);
 
                 const paymentData = state.data;
                 const reference = crypto.randomUUID();
@@ -196,7 +215,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
                 if (result.action) {
-                    component.handleAction(action);
+                    component.handleAction(result.action);
                 } else {
                     handlePaymentResult(result, component);
                 }
