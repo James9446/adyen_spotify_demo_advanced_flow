@@ -35,7 +35,7 @@
         <div class="main-content">
             <header class="header">
                 <div class="profile-picture">
-                    <img id="profile-picture" src="./images/generic.png" alt="Profile Picture" class="circular-image" title="Console Log User">
+                    <img id="profile-picture" src="./images/generic.png" alt="Profile Picture" class="circular-image circular-image-home-page" title="Console Log User">
                 </div>
             </header>
             <div class="content">
@@ -70,6 +70,37 @@
                     <!-- <button id="premium-btn" class="button">Get Premium</button> -->
                 </div>
                 <div id="dropin-container"></div>
+            </div>
+            <div id="modal" class="modal hidden">
+                <div class="modal-content">
+                    <span id="close-modal" class="close-modal">&times;</span>
+                    <div class="modal-dropdown-container">
+                        <label for="currency-selection">Currency</label>
+                        <select id="currency-selection" class="modal-dropdown">
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                    <div class="modal-dropdown-container">
+                        <label for="country-selection">Country</label>
+                        <select id="country-selection" class="modal-dropdown">
+                            <option value="US">US</option>
+                            <option value="UK">UK</option>
+                            <option value="NL">NL</option>
+                        </select>
+                    </div>
+                    <div class="modal-dropdown-container">
+                        <label for="locale-selection">Locale</label>
+                        <select id="locale-selection" class="modal-dropdown">
+                            <option value="en-US">en-US</option>
+                            <option value="en-GB">en-GB</option>
+                            <option value="nl-NL">nl-NL</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="modal-save-btn" class="modal-save-btn">Save</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -36,14 +36,15 @@ async function startCheckout() {
     try {
         // const user = await callServer('/api/read-data');
         const user = await getFile('current-user.json');
+        const regionConfig = await getFile('region-config.json');
         console.log('user: ', user.shopperName.firstName);
         const checkoutDetails = {
             amount: {
                 value: 10000,
-                currency: "USD",
+                currency: regionConfig.currency,
             },
-            countryCode: "US",
-            locale: "en-US",
+            countryCode: regionConfig.country,
+            locale: regionConfig.locale,
             channel: "web",
             lineItems:[
                 {
