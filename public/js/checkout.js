@@ -1,35 +1,29 @@
-// set the profile pic
-setProfilePic();
-
 // Used to finalize a checkout call in case of redirect
 const urlParams = new URLSearchParams(window.location.search);
-const sessionId = urlParams.get("sessionId");
 const redirectResult = urlParams.get("redirectResult");
 
-// gitpod url
+// gitpod url needs to be grabbed because the value may be different 
 const gitpodURL = window.location.href.split('/checkout')[0];
-
-// Tokenization
-function shouldSavePayment() {
-    checkboxValue = document.getElementById('save-payment').checked;
-    return checkboxValue;
-};
 
 // Trigger the checkout process on page load
 document.addEventListener("DOMContentLoaded", async () => {
     try {
+        // set the profile pic
+        setProfilePic();
+        
+        // check if there is a redirect parameter in the URL 
         if (!redirectResult) {
             // new session: start checkout
             startCheckout();
         } else {
-            // existing session: complete Checkout
+            // complete Checkout
             handleRedirect(redirectResult);
         }
     } catch (error) {
-        console.error("Error:", error);
-        alert("Failed to initialize checkout. See console for details.");
-    }
+        console.error("Failed to initialize checkout - Error:", error);
+    };
 });
+
 
 // Start the checkout process
 async function startCheckout() {
@@ -95,7 +89,6 @@ async function startCheckout() {
             .mount(document.getElementById("dropin-container"));
     } catch (error) {
         console.error("Error in paymentMethods:", error);
-        // alert("Error occurred. Look at console for details");
     }
 };
 
@@ -158,13 +151,14 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     paymentsBody = Object.assign(state.data, user, paymentsProps);
                 }
 
-                console.log('shouldTokenize: ', shouldTokenize);
-                console.log('paymentsBody: ', paymentsBody);
+                console.log("shouldTokenize: ", shouldTokenize);
+                console.log("onSubmit /api/payments request: ", paymentsBody);
 
                 // Make a POST /payments request from your server.
-                const result = await callServer(`/api/payments`, paymentsBody);
+                const result = await callServer('/api/payments', paymentsBody);
 
-                console.log("result", result);
+                console.log("onSubmit /api/payments resultCode: ", result.resultCode);
+                console.log("onSubmit /api/payments full result: ", result);
                 // If the payment is successful, redirect to the success page
                 // If the /payments request from your server fails, or if an unexpected error occurs.
                 if (!result.resultCode) {
@@ -175,12 +169,13 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
                 // You must call this, even if the result of the payment is unsuccessful.
                 if (result.action) {
+                    console.log("onSubmit action: ", result.action);
                     component.handleAction(result.action);
                 } else {
                     handlePaymentResult(result, component);
                 }
             } catch (error) {
-                console.error("onSubmit", error);
+                console.error("Error in onSubmit", error);
                 component.setStatus('error');
             }
         },
@@ -194,8 +189,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 const paymentData = state.data;
                 const reference = crypto.randomUUID();
 
-                // Make a POST /payments request from your server.
-                const result = await callServer(`/api/payments/details`, {
+                const paymentDetailsBody = {
                     paymentData,
                     countryCode,
                     locale,
@@ -203,25 +197,28 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     reference,
                     lineItems,
                     gitpodURL,
-                });
+                }
+                console.log("onAdditionalDetails /api/payments/details request: ", paymentDetailsBody);
 
-                console.log("result", result);
-                // If the payment is successful, redirect to the success page
-                // If the /payments request from your server fails, or if an unexpected error occurs.
+                // Make a POST /payments request from your server.
+                const result = await callServer('/api/payments/details', paymentDetailsBody);
+
+                console.log("onAdditionalDetails /api/payments/details resultCode: ", result.resultCode);
+                console.log("onAdditionalDetails /api/payments/details full result: ", result);
+   
                 if (!result.resultCode) {
                     handlePaymentResult(result, component);
                     return;
                 }
 
-                // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
-                // You must call this, even if the result of the payment is unsuccessful.
                 if (result.action) {
+                    console.log("onAdditionalDetails action: ", result.action);
                     component.handleAction(result.action);
                 } else {
                     handlePaymentResult(result, component);
                 }
             } catch (error) {
-                console.error("onSubmit", error);
+                console.error("Error in onAdditionalDetails", error);
                 component.setStatus('error');
             }
         },
@@ -231,6 +228,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
             handlePaymentResult(result, component);
         },
         onPaymentFailed: (result, component) => {
+            console.log("Payment failed:");
             console.info(result, component);
         },
         onError: (error, component) => {
@@ -288,7 +286,7 @@ function handlePaymentResult(response, component) {
             break;
         default:
             changeCheckoutTitle("Error");
-            console.log("response.resultCode: ", response.resultCode);
+            console.log("Error (possibly due to no resultCode) response.resultCode: ", response.resultCode);
             component ? component.setStatus('error') : console.log('no component');
             break;
     }
@@ -307,4 +305,10 @@ async function callServer(url, data) {
     });
 
     return await response.json();
+};
+
+// Helper Function to determine whether Tokenization should be applied 
+function shouldSavePayment() {
+    checkboxValue = document.getElementById('save-payment').checked;
+    return checkboxValue;
 };

@@ -50,12 +50,13 @@ app.post("/api/paymentMethods", async (req, res) => {
       lineItems,
       shopperReference
     };
-    // console.log("/paymentsMethods request object: ", paymentRequest);
+    // console.log("\ncheckout.PaymentsApi.paymentMethods request object: \n\n\n", paymentRequest);
+
     const response = await checkout.PaymentsApi.paymentMethods( paymentMethodRequest, {
         idempotencyKey: uuid(),
     });
-
-    // console.log("/paymentsMethods response object: ", response);
+    console.log("\ncheckout.PaymentsApi.paymentMethods response: \n\n\n", response);
+    console.log("\n")
     res.json(response);
   } catch (err) {
     console.error(
@@ -75,34 +76,17 @@ app.post("/api/payments", async (req, res) => {
 
     let paymentRequest = {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-      returnUrl: `${gitpodURL}/checkout`,
-      lineItems: [ {
-        quantity: "1",
-        taxPercentage: "2100",
-        description: "Shoes",
-        id: "Item #1",
-        amountIncludingTax: "400",
-        productUrl: "URL_TO_PURCHASED_ITEM",
-        imageUrl: "URL_TO_PICTURE_OF_PURCHASED_ITEM"
-      }, {
-        quantity: "2",
-        taxPercentage: "2100",
-        description: "Socks",
-        id: "Item #2",
-        amountIncludingTax: "300",
-        productUrl: "URL_TO_PURCHASED_ITEM",
-        imageUrl: "URL_TO_PICTURE_OF_PURCHASED_ITEM"
-      } ]
-    }
+      returnUrl: `${gitpodURL}/checkout`
+    };
 
-    paymentRequest = Object.assign(paymentRequest, req.body)
-
-    // console.log("/payments request object: ", paymentRequest);
+    paymentRequest = Object.assign(paymentRequest, req.body);
+    // console.log("\ncheckout.PaymentsApi.payments request object: \n\n\n", paymentRequest);
 
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
     });
-    // console.log("/payments response: ", response);
+    console.log("\ncheckout.PaymentsApi.payments response: \n\n\n", shortenLongFields(response));
+    console.log("\n")
     res.json(response);
   } catch (err) {
     console.error(
@@ -125,13 +109,15 @@ app.post("/api/payments/details", async (req, res) => {
     const redirectResult = req.body?.redirectResult;
     console.log("redirectResult: ", redirectResult);
 
+    // if there is a redirectResult use it to make the request to /payments/details
+    // otherwise use the paymentData from the req.body to make the request to /payments/details
     const paymentDetailsRequest = !redirectResult ? req.body.paymentData : {
       "details": {
           "redirectResult": redirectResult
         }
     };
 
-    // console.log("/payments/details request object: ", paymentDetailsRequest);
+    // console.log("\ncheckout.PaymentsApi.paymentsDetails request object: \n\n\n", paymentDetailsRequest);
     const response = await checkout.PaymentsApi.paymentsDetails(
       paymentDetailsRequest,
       {
@@ -139,7 +125,8 @@ app.post("/api/payments/details", async (req, res) => {
       },
     );
 
-    // console.log('/payments/details Details response: ', response);
+    console.log("\ncheckout.PaymentsApi.paymentsDetails response: \n\n\n", shortenLongFields(response));
+    console.log("\n");
     res.json(response);
   } catch (err) {
     console.error(
@@ -166,7 +153,7 @@ app.post("/api/webhooks/notifications", async (req, res) => {
     const merchantReference = notification.merchantReference;
     const eventCode = notification.eventCode;
     console.log(
-      "merchantReference:" + merchantReference + " eventCode:" + eventCode,
+      `merchantReference: ${merchantReference} eventCode: ${eventCode}`,
     );
 
     // Consume event asynchronously
@@ -174,7 +161,7 @@ app.post("/api/webhooks/notifications", async (req, res) => {
 
     res.status(202).send();
   } else {
-    console.log("Invalid HMAC signature: " + notification);
+    console.log(`Invalid HMAC signature: ${notification}`);
     res.status(401).send("Invalid HMAC signature");
   }
 });
@@ -245,6 +232,20 @@ app.post('/api/saveFile', async (req, res) => {
     res.status(500).json({ error: 'Error writing to file', details: err.message });
   }
 });
+
+
+// HELPER FUNCTIONS
+const shortenLongFields = (obj, maxLength = 50) => {
+  const newObj = {...obj};
+  for (const [key, value] of Object.entries(newObj)) {
+    if (typeof value === 'string' && value.length > maxLength) {
+      newObj[key] = value.substring(0, maxLength) + '...';
+    } else if (typeof value === 'object' && value !== null) {
+      newObj[key] = shortenLongFields(value, maxLength);
+    }
+  }
+  return newObj;
+};
 
 
 // Start server
