@@ -1,13 +1,20 @@
 
-// USE PERSISTENT DATA ON PAGE LOAD 
+// PERSISTENT DATA 
+// On page load get data from the server
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        // set the profile pic
+        setProfilePic(); 
 
-// set the drop to display the current user
-setUserDropdownSelection();
-// set the modal dropdown to display the current region configuration
-setModalSelections();
-// set the profile pic
-setProfilePic();
+        // set the dropdown to display the current user
+        setUserDropdownSelection();
 
+        // set the modal dropdown to display the current region configuration
+        setModalSelections();
+    } catch (error) {
+        console.error("Error with process triggered on page load:", error);
+    };
+});
 
 
 // USER SELECTION

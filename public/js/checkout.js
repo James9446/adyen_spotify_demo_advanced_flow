@@ -5,11 +5,22 @@ const redirectResult = urlParams.get("redirectResult");
 // gitpod url needs to be grabbed because the value may be different 
 const gitpodURL = window.location.href.split('/checkout')[0];
 
-// Trigger the checkout process on page load
+let user;
+let regionConfig;
+
+// On page load get data from the server; trigger the checkout process
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         // set the profile pic
         setProfilePic();
+
+        // get user data from server
+        user = await getFile('current-user.json');
+        console.log('user: ', user.shopperName.firstName);
+
+        // get region data from server
+        regionConfig = await getFile('region-config.json');
+        console.log('regionConfig: ', regionConfig);
         
         // check if there is a redirect parameter in the URL 
         if (!redirectResult) {
@@ -28,10 +39,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Start the checkout process
 async function startCheckout() {
     try {
-        // const user = await callServer('/api/read-data');
-        const user = await getFile('current-user.json');
-        const regionConfig = await getFile('region-config.json');
-        console.log('user: ', user.shopperName.firstName);
         const checkoutDetails = {
             amount: {
                 value: 10000,
