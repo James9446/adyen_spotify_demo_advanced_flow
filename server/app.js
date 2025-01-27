@@ -31,26 +31,18 @@ const checkout = new CheckoutAPI(client);
 app.post("/api/paymentMethods", async (req, res) => {
   console.log("/paymentMethods start");
   try {
-    const amount = {
-      currency: req.body.amount.currency,
-      value: req.body.amount.value,
-    };
-    const countryCode = req.body.countryCode;
-    const shopperLocale = req.body.locale;
-    const channel = req.body.channel;
-    const lineItems = req.body.lineItems;
-    const shopperReference = req.body.shopperReference;
+    const {amount, countryCode, locale, channel, lineItems, shopperReference} = req.body;
 
     const paymentMethodRequest = {
+      merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
+      shopperLocale: locale,
       amount,
       countryCode,
-      merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-      shopperLocale,
       channel,
       lineItems,
       shopperReference
     };
-    // console.log("\ncheckout.PaymentsApi.paymentMethods request object: \n\n\n", paymentRequest);
+    // console.log("\ncheckout.PaymentsApi.paymentMethods request object: \n\n\n", paymentMethodRequest);
 
     const response = await checkout.PaymentsApi.paymentMethods( paymentMethodRequest, {
         idempotencyKey: uuid(),
@@ -72,13 +64,9 @@ app.post("/api/paymentMethods", async (req, res) => {
 app.post("/api/payments", async (req, res) => {
   console.log("/payments start");
   try {
-    const gitpodURL = req.body.gitpodURL;
-
     let paymentRequest = {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
-      returnUrl: `${gitpodURL}/checkout`
     };
-
     paymentRequest = Object.assign(paymentRequest, req.body);
     // console.log("\ncheckout.PaymentsApi.payments request object: \n\n\n", paymentRequest);
 

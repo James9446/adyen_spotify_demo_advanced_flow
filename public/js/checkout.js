@@ -3,7 +3,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const redirectResult = urlParams.get("redirectResult");
 
 // gitpod url needs to be grabbed because the value may be different 
-const gitpodURL = window.location.href.split('/checkout')[0];
+const returnUrl = window.location.href;
+console.log("returnUrl: ", returnUrl);
 
 let user;
 let regionConfig;
@@ -60,21 +61,15 @@ async function startCheckout() {
                     "imageUrl": "URL_TO_PICTURE_OF_PURCHASED_ITEM"
                 }
             ],
-            gitpodURL,
             shopperReference: user.shopperReference
         };
-        // Call the server to create a payment session
-        const paymentMethods = await callServer(
-            `/api/paymentMethods`,
-            checkoutDetails,
-        );
 
+        // Call the server to create a payment session
+        const paymentMethods = await callServer('/api/paymentMethods', checkoutDetails);
         console.log('paymentMehods: ', paymentMethods);
+
         // Create checkout instance using the session returned by the server
-        const checkout = await createCheckoutInstance({
-            paymentMethods,
-            checkoutDetails,
-        });
+        const checkout = await createCheckoutInstance({ paymentMethods, checkoutDetails });
 
         // Create Drop-in component and mount it
         checkout
@@ -102,13 +97,7 @@ async function startCheckout() {
 // Create and configure checkout instance
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     const clientKey = await getData('api/getClientKey');
-    const user = await getFile('current-user.json');
-    const countryCode = checkoutDetails.countryCode;
-    const locale = checkoutDetails.locale;
-    const amount = checkoutDetails.amount;
-    const channel = checkoutDetails.channel;
-    const lineItems = checkoutDetails.lineItems;
-    const gitpodURL = checkoutDetails.gitpodURL;
+    const { countryCode, locale, amount, channel, lineItems } = checkoutDetails;
 
     const configuration = {
         clientKey,
@@ -137,7 +126,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     channel,
                     reference,
                     lineItems,
-                    gitpodURL,
+                    returnUrl,
                     authenticationData: {
                         threeDSRequestData: {
                             nativeThreeDS: "preferred"
@@ -203,7 +192,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                     amount,
                     reference,
                     lineItems,
-                    gitpodURL,
+                    returnUrl,
                 }
                 console.log("onAdditionalDetails /api/payments/details request: ", paymentDetailsBody);
 
@@ -251,13 +240,12 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 // Handle redirects after card challenges
 async function handleRedirect(redirectResult) {
     try {
-        const result = await callServer(`/api/payments/details`, {redirectResult});
+        const result = await callServer('/api/payments/details', {redirectResult});
         console.log('redirect payment details result: ', result);
         handlePaymentResult(result);
 
     } catch (error) {
-        console.error(error);
-        alert("Error occurred. Look at console for details");
+        console.error("Error in handleRedirect", error);
     }
 };
 
@@ -267,14 +255,16 @@ async function handleRedirect(redirectResult) {
 function handlePaymentResult(response, component) {
     switch (response.resultCode) {
         case "Authorised":
-            component ? component.unmount() : console.log('no component');
+            component ? component.unmount() : console.log('no component - unmount not necessary');
             changeCheckoutTitle("Payment Completed");
             setTimeout(addPaymentCompleteMessage, 2000);
             setTimeout(addButton, 3000);
             console.log("response.resultCode: ", response.resultCode);
             break;
         case "Refused":
+            component ? component.unmount() : console.log('no component - unmount not necessary');
             changeCheckoutTitle("Payment Refused");
+            console.log("response.resultCode: ", response.resultCode);
             setTimeout(() => {
                 addPaymentCompleteMessage(
                     "We encountered a problem while processing your payment method.",
@@ -283,8 +273,7 @@ function handlePaymentResult(response, component) {
                     "Please try again, or choose a different payment method to complete your purchase.",
                 );
                 addButton("/checkout", "Continue");
-            }, 1500);
-            console.log("response.resultCode: ", response.resultCode);
+            }, 500);
             break;
         case "Pending":
             console.log("response.resultCode: ", response.resultCode);
