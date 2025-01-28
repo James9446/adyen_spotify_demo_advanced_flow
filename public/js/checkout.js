@@ -155,6 +155,7 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 
                 console.log("onSubmit /api/payments resultCode: ", result.resultCode);
                 console.log("onSubmit /api/payments full result: ", result);
+                console.log("pspReference: ", result.pspReference)
                 // If the payment is successful, redirect to the success page
                 // If the /payments request from your server fails, or if an unexpected error occurs.
                 if (!result.resultCode) {
