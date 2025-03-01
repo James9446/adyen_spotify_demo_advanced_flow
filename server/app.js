@@ -68,7 +68,7 @@ app.post("/api/payments", async (req, res) => {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
     };
     paymentRequest = Object.assign(paymentRequest, req.body);
-    // console.log("\ncheckout.PaymentsApi.payments request object: \n\n\n", paymentRequest);
+    console.log("\ncheckout.PaymentsApi.payments request object: \n\n\n", paymentRequest);
 
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),

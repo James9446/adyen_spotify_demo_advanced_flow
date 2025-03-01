@@ -4,7 +4,7 @@ const redirectResult = urlParams.get("redirectResult");
 
 // gitpod url needs to be grabbed because the value may be different 
 const returnUrl = window.location.href;
-console.log("returnUrl: ", returnUrl);
+// console.log("returnUrl: ", returnUrl);
 
 let user;
 let regionConfig;
@@ -112,9 +112,9 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
         onSubmit: async (state, component) => {
             try {
                 console.log("onSubmit triggered");
-                console.log("onSubmit state: ", state);
-                console.log("onSubmit component: ", component);
-                console.log("onSubmit paymentMethods: ", paymentMethods);
+                // console.log("onSubmit state: ", state);
+                // console.log("onSubmit component: ", component);
+                // console.log("onSubmit paymentMethods: ", paymentMethods);
 
                 const reference = crypto.randomUUID();
                 
@@ -180,8 +180,8 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
         onAdditionalDetails: async (state, component) => {
             try {
                 console.log("onAdditionalDetails triggered");
-                console.log("onAdditionalDetails state: ", state);
-                console.log("onAdditionalDetails component: ", component);
+                // console.log("onAdditionalDetails state: ", state);
+                // console.log("onAdditionalDetails component: ", component);
 
                 const paymentData = state.data;
                 const reference = crypto.randomUUID();
@@ -260,12 +260,12 @@ function handlePaymentResult(response, component) {
             changeCheckoutTitle("Payment Completed");
             setTimeout(addPaymentCompleteMessage, 2000);
             setTimeout(addButton, 3000);
-            console.log("response.resultCode: ", response.resultCode);
+            console.log("final resultCode: ", response.resultCode);
             break;
         case "Refused":
             component ? component.unmount() : console.log('no component - unmount not necessary');
             changeCheckoutTitle("Payment Refused");
-            console.log("response.resultCode: ", response.resultCode);
+            console.log("final resultCode: ", response.resultCode);
             setTimeout(() => {
                 addPaymentCompleteMessage(
                     "We encountered a problem while processing your payment method.",
@@ -277,9 +277,9 @@ function handlePaymentResult(response, component) {
             }, 500);
             break;
         case "Pending":
-            console.log("response.resultCode: ", response.resultCode);
+            console.log("final resultCode: ", response.resultCode);
         case "Received":
-            console.log("response.resultCode: ", response.resultCode);
+            console.log("final resultCode: ", response.resultCode);
             break;
         default:
             changeCheckoutTitle("Error");
