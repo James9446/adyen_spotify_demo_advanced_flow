@@ -68,6 +68,7 @@ app.post("/api/payments", async (req, res) => {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
     };
     paymentRequest = Object.assign(paymentRequest, req.body);
+
     console.log("\ncheckout.PaymentsApi.payments request object: \n\n\n", paymentRequest);
 
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
@@ -94,20 +95,22 @@ app.post("/api/payments/details", async (req, res) => {
   console.log("/payment/details start");
   
   try {
-    const redirectResult = req.body?.redirectResult;
-    console.log("redirectResult: ", redirectResult);
+    // const redirectResult = req.body?.redirectResult;
+    // console.log("redirectResult: ", redirectResult);
 
-    // if there is a redirectResult use it to make the request to /payments/details
-    // otherwise use the paymentData from the req.body to make the request to /payments/details
-    const paymentDetailsRequest = !redirectResult ? req.body.paymentData : {
-      "details": {
-          "redirectResult": redirectResult
-        }
-    };
+    // // if there is a redirectResult use it to make the request to /payments/details
+    // // otherwise use the paymentData from the req.body to make the request to /payments/details
+    // const paymentDetailsRequest = !redirectResult ? req.body.paymentData : {
+    //   "details": {
+    //       "redirectResult": redirectResult
+    //     }
+    // };
 
     // console.log("\ncheckout.PaymentsApi.paymentsDetails request object: \n\n\n", paymentDetailsRequest);
+
+    console.log("\ncheckout.PaymentsApi.paymentsDetails request object: \n\n\n", req.body.paymentData);
     const response = await checkout.PaymentsApi.paymentsDetails(
-      paymentDetailsRequest,
+      req.body.paymentData,
       {
         idempotencyKey: uuid(),
       },
