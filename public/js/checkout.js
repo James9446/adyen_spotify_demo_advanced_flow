@@ -107,12 +107,12 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 
         onSubmit: async (state, component) => {
             try {
-                colorLog("onSubmit triggered", null, 'yellow');
-                
+                colorLog("onSubmit triggered", null, 'yellow');    
                 const reference = crypto.randomUUID();
-                
-                // Payment Data
-                const paymentsProps = {
+
+                let paymentsBody = {
+                    ...state.data,
+                    ...user,
                     countryCode,
                     locale,
                     amount,
@@ -125,12 +125,6 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                             nativeThreeDS: "preferred"
                         }
                     },
-                };
-
-                let paymentsBody = {
-                    ...state.data,
-                    ...user,
-                    ...paymentsProps,
                 };
 
                 // Tokenization
