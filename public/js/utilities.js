@@ -123,3 +123,21 @@ function addButton(href = "/", buttonText = "Explore Your Benefits") {
 
     container.appendChild(button);
 }
+
+//  ----- HELPER FUNCTIONS -----
+
+// This allows the you to console.log things with a colored label 
+// Example usage:
+// colorLog("This is log");                                       // (defaults to light green)
+// colorLog("Message with data: ", { someData: 123 });              // (defaults to light green)
+// colorLog("Info message!", null, 'yellow');                 // (nice way to distinguish logs that are only a single string)
+// colorLog("There was an error: ", { someData: 123 }, 'orange');
+
+const colorLog = (message, data, color = '#90EE90') => {
+    // explicitly check for null rather than use a truthy value. That way falsy values (other than null) can still be logged 
+    if (data !== null) {
+        console.log(`%c${message}`, `color: ${color}`, data);
+    } else {
+        console.log(`%c${message}`, `color: ${color}`);
+    }
+};

@@ -1,11 +1,6 @@
-// Used to finalize a checkout call in case of redirect
 const urlParams = new URLSearchParams(window.location.search);
 const redirectResult = urlParams.get("redirectResult");
-
-// gitpod url needs to be grabbed because the value may be different 
 const returnUrl = window.location.href;
-// console.log('%c' + "returnUrl: ", 'color: #90EE90', returnUrl);
-
 let user;
 let regionConfig;
 
@@ -23,17 +18,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         // check if there is a redirect parameter in the URL 
         if (!redirectResult) {
-            // only log user details if page load is not after a redirect
-            console.log('%c' + "user: ", 'color: #90EE90', user.shopperName.firstName);
-            console.log('%c' + "regionConfig: ", 'color: #90EE90', regionConfig);
-            // new session: start checkout
-            startCheckout();
+            // when not a redirect console.log user data and region data
+            colorLog("user: ", user.shopperName.firstName);
+            colorLog("regionConfig: ", regionConfig);
+            
+            // not redirect => start new checkout
+            startCheckout();       
         } else {
-            // complete Checkout
             handleRedirect(redirectResult);
         }
     } catch (error) {
-        console.error('%c' + "Failed to initialize checkout - Error:", 'color: orange', error);
+        colorLog("Failed to initialize checkout - Error: ", error, 'orange');
     };
 });
 
@@ -67,7 +62,7 @@ async function startCheckout() {
 
         // -------- Call server to create get the paymentMethods -----------
         const paymentMethods = await callServer('/api/paymentMethods', checkoutDetails);
-        console.log('%c' + "paymentMehods: ", 'color: #90EE90', paymentMethods);
+        colorLog("paymentMehods: ", paymentMethods);
 
         // Create checkout instance using the paymentMethods returned by the server
         const checkout = await createCheckoutInstance({ paymentMethods, checkoutDetails });
@@ -91,9 +86,11 @@ async function startCheckout() {
             })
             .mount(document.getElementById("dropin-container"));
     } catch (error) {
-        console.error('%c' + "Error in paymentMethods:", 'color: orange', error);
+        colorLog("Error in paymentMethods:", error, 'orange');
     }
 };
+
+
 
 // Create and configure checkout instance
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
@@ -110,14 +107,11 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 
         onSubmit: async (state, component) => {
             try {
-                console.log('%c' + "onSubmit triggered", 'color: yellow');
-                // console.log('%c' + "onSubmit state: ", 'color: #90EE90', state);
-                // console.log('%c' + "onSubmit component: ", 'color: #90EE90', component);
-                // console.log('%c' + "onSubmit paymentMethods: ", 'color: #90EE90', paymentMethods);
-
+                colorLog("onSubmit triggered", null, 'yellow');
+                
                 const reference = crypto.randomUUID();
                 
-                let paymentsBody = {};
+                // Payment Data
                 const paymentsProps = {
                     countryCode,
                     locale,
@@ -132,29 +126,39 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                         }
                     },
                 };
-                const additionalTokenizationProps = {
-                    shopperInteraction: state.data.paymentMethod.storedPaymentMethodId ? "ContAuth" : "Ecommerce",
-                    recurringProcessingModel: "CardOnFile", 
-                    storePaymentMethod: state.data.paymentMethod.storedPaymentMethodId ? false : true,
-                }
 
+                let paymentsBody = {
+                    ...state.data,
+                    ...user,
+                    ...paymentsProps,
+                };
+
+                // Tokenization
                 const shouldTokenize = shouldSavePayment();
-                // console.log('%c' + "shouldTokenize: ", 'color: #90EE90', shouldTokenize);
-
-                if (shouldTokenize || state.data.paymentMethod.storedPaymentMethodId) {
-                    paymentsBody = Object.assign(state.data, user, paymentsProps, additionalTokenizationProps);
-                } else {
-                    paymentsBody = Object.assign(state.data, user, paymentsProps);
+                const isStoredPaymentMethod = state.data.paymentMethod.storedPaymentMethodId;
+                
+                const tokenizationProps = {
+                    recurringProcessingModel: "CardOnFile", 
+                    shopperInteraction: isStoredPaymentMethod ? "ContAuth" : "Ecommerce",
+                    storePaymentMethod: !isStoredPaymentMethod,
                 }
 
-                console.log('%c' + "/payments request: ", 'color: #90EE90', paymentsBody);
+                if (shouldTokenize || isStoredPaymentMethod) {
+                    paymentsBody = {
+                        ...paymentsBody,
+                        ...tokenizationProps,
+                    };
+                }
 
-
-                // ------------ Make a POST /payments request from the server.---------------
+                
+                
+                // ------------   PAYMENTS REQUEST  ---------------
+                colorLog("/payments request: ", paymentsBody);
                 const result = await callServer('/api/payments', paymentsBody);
 
-                // console.log('%c' + "/payments response - full result: ", 'color: #90EE90', result);
-                console.log('%c' + "/payments response - resultCode: ", 'color: #90EE90', result.resultCode);
+                colorLog("/payments response - resultCode: ", result.resultCode);
+                // colorLog("/payments response - full result: ", result);
+                
                 
                 // If the /payments request from the server fails, or if an unexpected error occurs.
                 if (!result.resultCode) {
@@ -164,42 +168,29 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 
                 // handle action 
                 if (result.action) {
-                    // console.log('%c' + "/payments response - action: ", 'color: #90EE90', result.action);
-                    console.log('%c' + "/payments response - action.type: ", 'color: #90EE90', result.action.type);
-                    // console.log('%c' + "/payments response - action.subtype: ", 'color: #90EE90', result.action.subtype);
+                    colorLog("/payments response - action.type: ", result.action.type);
                     component.handleAction(result.action);
                 } else {
                     handlePaymentResult(result, component);
                 }
-                console.log('%c' + "pspReference: ", 'color: #90EE90', result.pspReference)
+                colorLog("pspReference: ", result.pspReference)
             } catch (error) {
-                console.error("Error in onSubmit", error);
+                colorLog("Error in onSubmit", error, 'orange');
                 component.setStatus('error');
             }
         },
 
         onAdditionalDetails: async (state, component) => {
             try {
-                console.log('%c' + "onAdditionalDetails triggered", 'color: yellow');
-                // console.log('%c' + "onAdditionalDetails state: ", 'color: #90EE90', state);
-                // console.log('%c' + "onAdditionalDetails component: ", 'color: #90EE90', component);
+                colorLog("onAdditionalDetails triggered", null, 'yellow');
+                
 
-                const paymentData = state.data;
-                const reference = crypto.randomUUID();
+                // -------------    PAYMENT DETAILS REQUEST    --------------
+                colorLog("/paymentsDetails request: ", state.data);
+                const result = await callServer('/api/payments/details', state.data);
 
-                const paymentDetailsBody = {
-                    paymentData,
-                    reference,
-                };
-
-
-                console.log('%c' + "/paymentsDetails request: ", 'color: #90EE90', paymentDetailsBody);
-
-                // ------------- Make a POST /payments request from your server.--------------
-                const result = await callServer('/api/payments/details', paymentDetailsBody);
-
-                // console.log('%c' + "/paymentsDetails response - full result: ", 'color: #90EE90', result); 
-                console.log('%c' + "/paymentsDetails response - resultCode: ", 'color: #90EE90', result.resultCode);
+                // colorLog("/paymentsDetails response - full result: ", result); 
+                colorLog("/paymentsDetails response - resultCode: ", result.resultCode);
    
                 if (!result.resultCode) {
                     handlePaymentResult(result, component);
@@ -207,25 +198,23 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 }
 
                 if (result.action) {
-                    // console.log('%c' + "/paymentsDetails response - action: ", 'color: #90EE90', result.action);
-                    console.log('%c' + "/paymentsDetails response - action.type: ", 'color: #90EE90', result.action.type);
-                    // console.log('%c' + "/paymentsDetails response - action.subtype: ", 'color: #90EE90', result.action.subtype);
+                    colorLog("/paymentsDetails response - action.type: ", result.action.type);
                     component.handleAction(result.action);
                 } else {
                     handlePaymentResult(result, component);
                 }
             } catch (error) {
-                console.error('%c' + "Error in onAdditionalDetails", 'color: orange', error);
+                colorLog("Error in onAdditionalDetails", error, 'orange');
                 component.setStatus('error');
             }
         },
         onPaymentCompleted: (result, component) => {
-            console.log('%c' + "Payment completed:", 'color: yellow',);
+            colorLog("Payment completed", null, 'yellow');
             console.info(result, component);
             handlePaymentResult(result, component);
         },
         onPaymentFailed: (result, component) => {
-            console.log('%c' + "Payment failed:", 'color: orange',);
+            colorLog("Payment failed", null, 'orange');
             console.info(result, component);
         },
         onError: (error, component) => {
@@ -241,18 +230,22 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 // Handle redirects after card challenges
 async function handleRedirect(redirectResult) {
     try {
-        const result = await callServer('api/payments/details', {
-            paymentData: {
-                details: {
-                    redirectResult
-                }
+        colorLog("handleRedirect triggered", null, 'yellow');
+        const requestBody = {
+            details: {
+                redirectResult
             }
-        });
-        console.log('%c' + "redirect /paymentDetails response: ", 'color: #90EE90', result);
+        };
+
+        // -------------    PAYMENT DETAILS REQUEST    --------------
+        colorLog("redirect /paymentDetails request: ", requestBody);
+        const result = await callServer('api/payments/details', requestBody);
+
+        colorLog("redirect /paymentDetails response - resultCode: ", result.resultCode);
         handlePaymentResult(result);
 
     } catch (error) {
-        console.error('%c' + "Error in handleRedirect", 'color: #90EE90', error);
+        colorLog("Error in handleRedirect", error, 'orange');
     }
 };
 
@@ -268,14 +261,14 @@ function handlePaymentResult(response, component) {
             changeCheckoutTitle("Payment Completed");
             setTimeout(addPaymentCompleteMessage, 2000);
             setTimeout(addButton, 3000);
-            console.log('%c' + "final resultCode: ", 'color: #90EE90', response.resultCode);
+            colorLog("final resultCode: ", response.resultCode);
             break;
         case "Refused":
             if (component) {
                 component.unmount();
             };
             changeCheckoutTitle("Payment Refused");
-            console.log('%c' + "final resultCode: ", 'color: #90EE90', response.resultCode);
+            colorLog("final resultCode: ", response.resultCode);
             setTimeout(() => {
                 addPaymentCompleteMessage(
                     "We encountered a problem while processing your payment method.",
@@ -287,13 +280,13 @@ function handlePaymentResult(response, component) {
             }, 500);
             break;
         case "Pending":
-            console.log('%c' + "final resultCode: ", 'color: #90EE90', response.resultCode);
+            colorLog("final resultCode: ", response.resultCode);
         case "Received":
-            console.log('%c' + "final resultCode: ", 'color: #90EE90', response.resultCode);
+            colorLog("final resultCode: ", response.resultCode);
             break;
         default:
             changeCheckoutTitle("Error");
-            console.log('%c' + "Error (possibly due to no resultCode) response.resultCode: ", 'color: orange', response.resultCode);
+            colorLog("Error (possibly due to no resultCode) response.resultCode: ", response.resultCode, 'orange');
             if (component) {
                 component.setStatus('error')
             };

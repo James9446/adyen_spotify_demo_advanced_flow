@@ -41,12 +41,12 @@ app.post("/api/paymentMethods", async (req, res) => {
       lineItems,
       shopperReference
     };
-    // console.log("\ncheckout.PaymentsApi.paymentMethods request object: \n\n\n", paymentMethodRequest);
+    // console.log("\n/paymentMethods request object: \n\n\n", paymentMethodRequest);
 
     const response = await checkout.PaymentsApi.paymentMethods( paymentMethodRequest, {
         idempotencyKey: uuid(),
     });
-    console.log("\ncheckout.PaymentsApi.paymentMethods response: \n\n\n", response);
+    console.log("\n/paymentMethods response: \n\n\n", response);
     console.log("\n")
     res.json(response);
   } catch (err) {
@@ -68,13 +68,13 @@ app.post("/api/payments", async (req, res) => {
       ...req.body
     };
 
-    console.log("\ncheckout.PaymentsApi.payments request object: \n\n\n", paymentRequest);
+    console.log("\n/payments request object: \n\n\n", shortenLongFields(paymentRequest));
 
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
     });
 
-    console.log("\ncheckout.PaymentsApi.payments response: \n\n\n", shortenLongFields(response));
+    console.log("\n/payments response: \n\n\n", shortenLongFields(response));
     console.log("\n")
     res.json(response);
   } catch (err) {
@@ -93,16 +93,18 @@ app.post("/api/payments", async (req, res) => {
 // Payment Details
 app.post("/api/payments/details", async (req, res) => {
   try {
-    console.log("\ncheckout.PaymentsApi.paymentsDetails request object: \n\n\n", req.body.paymentData);
+    console.log("\n/payments/details request object: \n\n\n", shortenLongFields(req.body));
     
     const response = await checkout.PaymentsApi.paymentsDetails(
-      req.body.paymentData,
+      req.body,
       {
         idempotencyKey: uuid(),
       },
     );
 
-    console.log("\ncheckout.PaymentsApi.paymentsDetails response: \n\n\n", shortenLongFields(response));
+    console.log("\n/payments/details response: \n\n\n", shortenLongFields(response));
+    // console.log("\n/payments/details response: \n\n\n", response);
+
     console.log("\n");
     res.json(response);
   } catch (err) {
