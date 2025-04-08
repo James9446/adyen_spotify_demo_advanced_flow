@@ -70,19 +70,7 @@ async function startCheckout() {
         // Create Drop-in component and mount it
         checkout
             .create("dropin", { 
-                instantPaymentTypes: ["googlepay"],
-                paymentMethodsConfiguration: {
-                    card: {
-                        hasHolderName: true,
-                        holderNameRequired: true,
-                        enableStoreDetails: true,
-                        name: 'Credit or debit card',
-                        billingAddressRequired: true
-                    },
-                    threeDS2: {
-                        challengeWindowSize: '05'
-                    }
-                }
+                instantPaymentTypes: ['googlepay']
             })
             .mount(document.getElementById("dropin-container"));
     } catch (error) {
@@ -104,11 +92,25 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
         locale,
         countryCode,
         paymentMethodsResponse: paymentMethods,
+        paymentMethodsConfiguration: {
+            card: {
+                hasHolderName: true,
+                holderNameRequired: true,
+                // enableStoreDetails: true,
+                name: 'Credit or debit card',
+                billingAddressRequired: true,
+                billingAddressMode: 'partial'
+            },
+            threeDS2: {
+                challengeWindowSize: '05'
+            }
+        },
 
         onSubmit: async (state, component) => {
             try {
                 colorLog("onSubmit triggered", null, 'yellow');    
-                const reference = crypto.randomUUID();
+                const reference = generateUUID();
+                console.log('reference: ', reference);
 
                 let paymentsBody = {
                     ...state.data,

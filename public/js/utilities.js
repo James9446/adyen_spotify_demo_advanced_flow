@@ -141,3 +141,38 @@ const colorLog = (message, data, color = '#90EE90') => {
         console.log(`%c${message}`, `color: ${color}`);
     }
 };
+
+function generateUUID() {
+    // Check if crypto.randomUUID is available
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    } else {
+      // Fallback for older environments (see method 2)
+      console.warn("crypto.randomUUID() not supported, using fallback function to generate UUID.");
+      return generateUUIDFallback();
+    }
+  }
+  
+  // --- Fallback function (Method 2, see below) ---
+  function generateUUIDFallback() {
+    // Implementation using crypto.getRandomValues()
+    const buffer = new Uint8Array(16);
+    crypto.getRandomValues(buffer);
+  
+    // Set version bits (to 4)
+    buffer[6] = (buffer[6] & 0x0f) | 0x40; // M: version 4
+  
+    // Set variant bits (to RFC4122)
+    buffer[8] = (buffer[8] & 0x3f) | 0x80; // N: variant 10xx
+  
+    // Convert bytes to hex string and format
+    const hex = Array.from(buffer, byte => byte.toString(16).padStart(2, '0'));
+  
+    return [
+      hex.slice(0, 4).join(''),
+      hex.slice(4, 6).join(''),
+      hex.slice(6, 8).join(''),
+      hex.slice(8, 10).join(''),
+      hex.slice(10, 16).join('')
+    ].join('-');
+  }
