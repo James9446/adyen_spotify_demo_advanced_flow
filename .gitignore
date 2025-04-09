@@ -37,4 +37,4 @@ yarn.lock
 .gitpod.yml
 
 # this file changes frequently - no need to push changes
-server/pseudo-db/current-user.json
+# server/pseudo-db/current-user.json

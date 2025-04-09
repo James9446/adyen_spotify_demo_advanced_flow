@@ -94,15 +94,25 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
         paymentMethodsResponse: paymentMethods,
         paymentMethodsConfiguration: {
             card: {
-                hasHolderName: true,
-                holderNameRequired: true,
-                // enableStoreDetails: true,
                 name: 'Credit or debit card',
-                billingAddressRequired: true,
-                billingAddressMode: 'partial'
+                // hasHolderName: true,
+                // holderNameRequired: true,
+                // enableStoreDetails: true,
+                // billingAddressRequired: true,
+                // billingAddressMode: 'partial'
             },
             threeDS2: {
                 challengeWindowSize: '05'
+            },
+            googlepay: {
+                amount,
+                countryCode,
+                environment: "TEST"
+            },
+            applepay: {
+                amount,
+                countryCode,
+                environment: "TEST"
             }
         },
 

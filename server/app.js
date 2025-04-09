@@ -68,7 +68,9 @@ app.post("/api/payments", async (req, res) => {
       ...req.body
     };
 
-    console.log("\n/payments request object: \n\n\n", shortenLongFields(paymentRequest));
+    // console.log("\n/payments request object: \n\n\n", shortenLongFields(paymentRequest));
+    console.log("\n/payments request object: \n\n\n", paymentRequest);
+
 
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
