@@ -1,11 +1,6 @@
-// Used to finalize a checkout call in case of redirect
 const urlParams = new URLSearchParams(window.location.search);
 const redirectResult = urlParams.get("redirectResult");
-
-// gitpod url needs to be grabbed because the value may be different 
 const returnUrl = window.location.href;
-console.log("returnUrl: ", returnUrl);
-
 let user;
 let regionConfig;
 
@@ -17,22 +12,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // get user data from server
         user = await getFile('current-user.json');
-        console.log('user: ', user.shopperName.firstName);
-
+        
         // get region data from server
         regionConfig = await getFile('region-config.json');
-        console.log('regionConfig: ', regionConfig);
         
         // check if there is a redirect parameter in the URL 
         if (!redirectResult) {
-            // new session: start checkout
-            startCheckout();
+            // when not a redirect console.log user data and region data
+            colorLog("user: ", user.shopperName.firstName);
+            colorLog("regionConfig: ", regionConfig);
+            
+            // not redirect => start new checkout
+            startCheckout();       
         } else {
-            // complete Checkout
             handleRedirect(redirectResult);
         }
     } catch (error) {
-        console.error("Failed to initialize checkout - Error:", error);
+        colorLog("Failed to initialize checkout - Error: ", error, 'orange');
     };
 });
 
@@ -64,35 +60,25 @@ async function startCheckout() {
             shopperReference: user.shopperReference
         };
 
-        // Call the server to create a payment session
+        // -------- Call server to create get the paymentMethods -----------
         const paymentMethods = await callServer('/api/paymentMethods', checkoutDetails);
-        console.log('paymentMehods: ', paymentMethods);
+        colorLog("paymentMehods: ", paymentMethods);
 
-        // Create checkout instance using the session returned by the server
+        // Create checkout instance using the paymentMethods returned by the server
         const checkout = await createCheckoutInstance({ paymentMethods, checkoutDetails });
 
         // Create Drop-in component and mount it
         checkout
             .create("dropin", { 
-                instantPaymentTypes: ["googlepay"],
-                paymentMethodsConfiguration: {
-                    card: {
-                        hasHolderName: true,
-                        holderNameRequired: true,
-                        enableStoreDetails: true,
-                        name: 'Credit or debit card',
-                        billingAddressRequired: true
-                    },
-                    threeDS2: {
-                        challengeWindowSize: '05'
-                    }
-                }
+                instantPaymentTypes: ['googlepay']
             })
             .mount(document.getElementById("dropin-container"));
     } catch (error) {
-        console.error("Error in paymentMethods:", error);
+        colorLog("Error in paymentMethods:", error, 'orange');
     }
 };
+
+
 
 // Create and configure checkout instance
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
@@ -105,21 +91,40 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
         amount,
         locale,
         countryCode,
-
-        // The full /paymentMethods response object from your server. Contains the payment methods configured in your account.
         paymentMethodsResponse: paymentMethods,
+        paymentMethodsConfiguration: {
+            card: {
+                name: 'Credit or debit card',
+                // hasHolderName: true,
+                // holderNameRequired: true,
+                // enableStoreDetails: true,
+                // billingAddressRequired: true,
+                // billingAddressMode: 'partial'
+            },
+            threeDS2: {
+                challengeWindowSize: '05'
+            },
+            googlepay: {
+                amount,
+                countryCode,
+                environment: "TEST"
+            },
+            applepay: {
+                amount,
+                countryCode,
+                environment: "TEST"
+            }
+        },
 
         onSubmit: async (state, component) => {
             try {
-                console.log("onSubmit triggered");
-                console.log("onSubmit state: ", state);
-                console.log("onSubmit component: ", component);
-                console.log("onSubmit paymentMethods: ", paymentMethods);
+                colorLog("onSubmit triggered", null, 'yellow');    
+                const reference = generateUUID();
+                console.log('reference: ', reference);
 
-                const reference = crypto.randomUUID();
-                
-                let paymentsBody = {};
-                const paymentsProps = {
+                let paymentsBody = {
+                    ...state.data,
+                    ...user,
                     countryCode,
                     locale,
                     amount,
@@ -133,75 +138,65 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                         }
                     },
                 };
-                const additionalTokenizationProps = {
-                    shopperInteraction: state.data.paymentMethod.storedPaymentMethodId ? "ContAuth" : "Ecommerce",
-                    recurringProcessingModel: "CardOnFile", 
-                    storePaymentMethod: state.data.paymentMethod.storedPaymentMethodId ? false : true,
-                }
 
+                // Tokenization
                 const shouldTokenize = shouldSavePayment();
-
-                if (shouldTokenize || state.data.paymentMethod.storedPaymentMethodId) { 
-                    paymentsBody = Object.assign(state.data, user, paymentsProps, additionalTokenizationProps);
-                } else {
-                    paymentsBody = Object.assign(state.data, user, paymentsProps);
+                const isStoredPaymentMethod = state.data.paymentMethod.storedPaymentMethodId;
+                
+                const tokenizationProps = {
+                    recurringProcessingModel: "CardOnFile", 
+                    shopperInteraction: isStoredPaymentMethod ? "ContAuth" : "Ecommerce",
+                    storePaymentMethod: !isStoredPaymentMethod,
                 }
 
-                console.log("shouldTokenize: ", shouldTokenize);
-                console.log("onSubmit /api/payments request: ", paymentsBody);
+                if (shouldTokenize || isStoredPaymentMethod) {
+                    paymentsBody = {
+                        ...paymentsBody,
+                        ...tokenizationProps,
+                    };
+                }
 
-                // Make a POST /payments request from your server.
+                
+                
+                // ------------   PAYMENTS REQUEST  ---------------
+                colorLog("/payments request: ", paymentsBody);
                 const result = await callServer('/api/payments', paymentsBody);
 
-                console.log("onSubmit /api/payments resultCode: ", result.resultCode);
-                console.log("onSubmit /api/payments full result: ", result);
-                console.log("pspReference: ", result.pspReference)
-                // If the payment is successful, redirect to the success page
-                // If the /payments request from your server fails, or if an unexpected error occurs.
+                colorLog("/payments response - resultCode: ", result.resultCode);
+                // colorLog("/payments response - full result: ", result);
+                
+                
+                // If the /payments request from the server fails, or if an unexpected error occurs.
                 if (!result.resultCode) {
                     handlePaymentResult(result, component);
                     return;
                 }
-
-                // If the /payments request request form your server is successful, you must call this to resolve whichever of the listed objects are available.
-                // You must call this, even if the result of the payment is unsuccessful.
+                
+                // handle action 
                 if (result.action) {
-                    console.log("onSubmit action: ", result.action);
+                    colorLog("/payments response - action.type: ", result.action.type);
                     component.handleAction(result.action);
                 } else {
                     handlePaymentResult(result, component);
                 }
+                colorLog("pspReference: ", result.pspReference)
             } catch (error) {
-                console.error("Error in onSubmit", error);
+                colorLog("Error in onSubmit", error, 'orange');
                 component.setStatus('error');
             }
         },
 
         onAdditionalDetails: async (state, component) => {
             try {
-                console.log("onAdditionalDetails triggered");
-                console.log("onAdditionalDetails state: ", state);
-                console.log("onAdditionalDetails component: ", component);
+                colorLog("onAdditionalDetails triggered", null, 'yellow');
+                
 
-                const paymentData = state.data;
-                const reference = crypto.randomUUID();
+                // -------------    PAYMENT DETAILS REQUEST    --------------
+                colorLog("/paymentsDetails request: ", state.data);
+                const result = await callServer('/api/payments/details', state.data);
 
-                const paymentDetailsBody = {
-                    paymentData,
-                    countryCode,
-                    locale,
-                    amount,
-                    reference,
-                    lineItems,
-                    returnUrl,
-                }
-                console.log("onAdditionalDetails /api/payments/details request: ", paymentDetailsBody);
-
-                // Make a POST /payments request from your server.
-                const result = await callServer('/api/payments/details', paymentDetailsBody);
-
-                console.log("onAdditionalDetails /api/payments/details resultCode: ", result.resultCode);
-                console.log("onAdditionalDetails /api/payments/details full result: ", result);
+                // colorLog("/paymentsDetails response - full result: ", result); 
+                colorLog("/paymentsDetails response - resultCode: ", result.resultCode);
    
                 if (!result.resultCode) {
                     handlePaymentResult(result, component);
@@ -209,23 +204,23 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 }
 
                 if (result.action) {
-                    console.log("onAdditionalDetails action: ", result.action);
+                    colorLog("/paymentsDetails response - action.type: ", result.action.type);
                     component.handleAction(result.action);
                 } else {
                     handlePaymentResult(result, component);
                 }
             } catch (error) {
-                console.error("Error in onAdditionalDetails", error);
+                colorLog("Error in onAdditionalDetails", error, 'orange');
                 component.setStatus('error');
             }
         },
         onPaymentCompleted: (result, component) => {
-            console.log("Payment completed:");
+            colorLog("Payment completed", null, 'yellow');
             console.info(result, component);
             handlePaymentResult(result, component);
         },
         onPaymentFailed: (result, component) => {
-            console.log("Payment failed:");
+            colorLog("Payment failed", null, 'orange');
             console.info(result, component);
         },
         onError: (error, component) => {
@@ -241,12 +236,22 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
 // Handle redirects after card challenges
 async function handleRedirect(redirectResult) {
     try {
-        const result = await callServer('/api/payments/details', {redirectResult});
-        console.log('redirect payment details result: ', result);
+        colorLog("handleRedirect triggered", null, 'yellow');
+        const requestBody = {
+            details: {
+                redirectResult
+            }
+        };
+
+        // -------------    PAYMENT DETAILS REQUEST    --------------
+        colorLog("redirect /paymentDetails request: ", requestBody);
+        const result = await callServer('api/payments/details', requestBody);
+
+        colorLog("redirect /paymentDetails response - resultCode: ", result.resultCode);
         handlePaymentResult(result);
 
     } catch (error) {
-        console.error("Error in handleRedirect", error);
+        colorLog("Error in handleRedirect", error, 'orange');
     }
 };
 
@@ -256,16 +261,20 @@ async function handleRedirect(redirectResult) {
 function handlePaymentResult(response, component) {
     switch (response.resultCode) {
         case "Authorised":
-            component ? component.unmount() : console.log('no component - unmount not necessary');
+            if (component) {
+                component.unmount();
+            };
             changeCheckoutTitle("Payment Completed");
             setTimeout(addPaymentCompleteMessage, 2000);
             setTimeout(addButton, 3000);
-            console.log("response.resultCode: ", response.resultCode);
+            colorLog("final resultCode: ", response.resultCode);
             break;
         case "Refused":
-            component ? component.unmount() : console.log('no component - unmount not necessary');
+            if (component) {
+                component.unmount();
+            };
             changeCheckoutTitle("Payment Refused");
-            console.log("response.resultCode: ", response.resultCode);
+            colorLog("final resultCode: ", response.resultCode);
             setTimeout(() => {
                 addPaymentCompleteMessage(
                     "We encountered a problem while processing your payment method.",
@@ -277,14 +286,16 @@ function handlePaymentResult(response, component) {
             }, 500);
             break;
         case "Pending":
-            console.log("response.resultCode: ", response.resultCode);
+            colorLog("final resultCode: ", response.resultCode);
         case "Received":
-            console.log("response.resultCode: ", response.resultCode);
+            colorLog("final resultCode: ", response.resultCode);
             break;
         default:
             changeCheckoutTitle("Error");
-            console.log("Error (possibly due to no resultCode) response.resultCode: ", response.resultCode);
-            component ? component.setStatus('error') : console.log('no component');
+            colorLog("Error (possibly due to no resultCode) response.resultCode: ", response.resultCode, 'orange');
+            if (component) {
+                component.setStatus('error')
+            };
             break;
     }
 };

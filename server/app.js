@@ -29,7 +29,6 @@ const checkout = new CheckoutAPI(client);
 // ----- API ENDPOINTS -----
 // GET Payment Methods
 app.post("/api/paymentMethods", async (req, res) => {
-  console.log("/paymentMethods start");
   try {
     const {amount, countryCode, locale, channel, lineItems, shopperReference} = req.body;
 
@@ -42,12 +41,12 @@ app.post("/api/paymentMethods", async (req, res) => {
       lineItems,
       shopperReference
     };
-    // console.log("\ncheckout.PaymentsApi.paymentMethods request object: \n\n\n", paymentMethodRequest);
+    // console.log("\n/paymentMethods request object: \n\n\n", paymentMethodRequest);
 
     const response = await checkout.PaymentsApi.paymentMethods( paymentMethodRequest, {
         idempotencyKey: uuid(),
     });
-    console.log("\ncheckout.PaymentsApi.paymentMethods response: \n\n\n", response);
+    console.log("\n/paymentMethods response: \n\n\n", response);
     console.log("\n")
     res.json(response);
   } catch (err) {
@@ -60,20 +59,24 @@ app.post("/api/paymentMethods", async (req, res) => {
   }
 });
 
+
 // Make a Payment
 app.post("/api/payments", async (req, res) => {
-  console.log("/payments start");
   try {
-    let paymentRequest = {
+    const paymentRequest = {
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
+      ...req.body
     };
-    paymentRequest = Object.assign(paymentRequest, req.body);
-    // console.log("\ncheckout.PaymentsApi.payments request object: \n\n\n", paymentRequest);
+
+    // console.log("\n/payments request object: \n\n\n", shortenLongFields(paymentRequest));
+    console.log("\n/payments request object: \n\n\n", paymentRequest);
+
 
     const response = await checkout.PaymentsApi.payments(paymentRequest, {
       idempotencyKey: uuid(),
     });
-    console.log("\ncheckout.PaymentsApi.payments response: \n\n\n", shortenLongFields(response));
+
+    console.log("\n/payments response: \n\n\n", shortenLongFields(response));
     console.log("\n")
     res.json(response);
   } catch (err) {
@@ -91,29 +94,19 @@ app.post("/api/payments", async (req, res) => {
 
 // Payment Details
 app.post("/api/payments/details", async (req, res) => {
-  console.log("/payment/details start");
-  
   try {
-    const redirectResult = req.body?.redirectResult;
-    console.log("redirectResult: ", redirectResult);
-
-    // if there is a redirectResult use it to make the request to /payments/details
-    // otherwise use the paymentData from the req.body to make the request to /payments/details
-    const paymentDetailsRequest = !redirectResult ? req.body.paymentData : {
-      "details": {
-          "redirectResult": redirectResult
-        }
-    };
-
-    // console.log("\ncheckout.PaymentsApi.paymentsDetails request object: \n\n\n", paymentDetailsRequest);
+    console.log("\n/payments/details request object: \n\n\n", shortenLongFields(req.body));
+    
     const response = await checkout.PaymentsApi.paymentsDetails(
-      paymentDetailsRequest,
+      req.body,
       {
         idempotencyKey: uuid(),
       },
     );
 
-    console.log("\ncheckout.PaymentsApi.paymentsDetails response: \n\n\n", shortenLongFields(response));
+    console.log("\n/payments/details response: \n\n\n", shortenLongFields(response));
+    // console.log("\n/payments/details response: \n\n\n", response);
+
     console.log("\n");
     res.json(response);
   } catch (err) {

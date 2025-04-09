@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // set the modal dropdown to display the current region configuration
         setModalSelections();
     } catch (error) {
-        console.error("Error with process triggered on page load:", error);
+        colorLog("Error with process triggered on page load:", error, 'orange');
     };
 });
 
@@ -42,7 +42,7 @@ async function login(e) {
 
     // console.log user data instead of switching to that user
     if (e?.shiftKey) {
-        return console.log(JSON.stringify(user, null, 2));
+        return colorLog("user: ", JSON.stringify(user, null, 2));
     };
 
     try {
@@ -55,17 +55,17 @@ async function login(e) {
             setProfilePic();
         },1000);
     } catch (error) {
-        console.error('Error during login:', error);
+        colorLog("Error during login: ", error, 'orange');
     }
 }
 
 document.getElementById('login-btn').addEventListener('click', login);
 
 function generateRandomUser() {
-    const uuid = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const shopperReference = generateUUID();
     
     return {
-      shopperReference: uuid(),
+      shopperReference,
       shopperEmail: `user${Math.floor(Math.random() * 1000)}@example.com`,
       telephoneNumber: `+1 ${Math.floor(Math.random() * 1000)}-${Math.floor(Math.random() * 1000)}-${Math.floor(Math.random() * 10000)}`,
       shopperName: {
@@ -99,7 +99,7 @@ async function setModalSelections() {
 async function openModal(e) {
     if (e?.shiftKey) {
         const user = await getFile('current-user.json');
-        return console.log(JSON.stringify(user, null, 2));
+        return colorLog("user: ", JSON.stringify(user, null, 2));
     };
     toggleModal()
 }
@@ -139,7 +139,7 @@ async function saveRegionConfig(e) {
         await saveFile(selections, 'server/pseudo-db/region-config.json');
         toggleModal();
     } catch (error) {
-        console.error('Error saving the region config:', error);
+        colorLog("Error saving the region config: ", error, 'orange');
     }
 }
 
