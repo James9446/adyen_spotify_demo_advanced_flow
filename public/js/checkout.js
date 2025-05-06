@@ -84,6 +84,20 @@ async function startCheckout() {
 async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
     const clientKey = await getData('api/getClientKey');
     const { countryCode, locale, amount, channel, lineItems } = checkoutDetails;
+    const securedFieldStyles = {
+        base: {
+            color: '#d8d8d8'
+        },
+        error: {
+            color: 'orange'
+        },
+        validated: {
+            color: '#1db954;',
+        },
+        // placeholder: {
+        //     color: '#d8d8d8'
+        // }
+    };
 
     const configuration = {
         clientKey,
@@ -100,6 +114,10 @@ async function createCheckoutInstance({ paymentMethods, checkoutDetails }) {
                 // enableStoreDetails: true,
                 // billingAddressRequired: true,
                 // billingAddressMode: 'partial'
+                styles: securedFieldStyles,
+            },
+            storedCard: {
+                styles: securedFieldStyles,
             },
             threeDS2: {
                 challengeWindowSize: '05'
