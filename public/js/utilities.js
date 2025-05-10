@@ -65,6 +65,18 @@ async function getData(url) {
     }
 }
 
+async function callServer(url, data) {
+    const response = await fetch(url, {
+        method: "POST",
+        body: data ? JSON.stringify(data) : "",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    return await response.json();
+};
+
 
 //  ----- UPDATE UI FUNCTIONS -----
 
@@ -151,10 +163,10 @@ function generateUUID() {
       console.warn("crypto.randomUUID() not supported, using fallback function to generate UUID.");
       return generateUUIDFallback();
     }
-  }
+}
   
-  // --- Fallback function (Method 2, see below) ---
-  function generateUUIDFallback() {
+// --- Fallback function (Method 2, see below) ---
+function generateUUIDFallback() {
     // Implementation using crypto.getRandomValues()
     const buffer = new Uint8Array(16);
     crypto.getRandomValues(buffer);
@@ -175,4 +187,4 @@ function generateUUID() {
       hex.slice(8, 10).join(''),
       hex.slice(10, 16).join('')
     ].join('-');
-  }
+}

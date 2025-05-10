@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API-Only Checkout - Spotify Clone</title>
+
+    <script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.js"></script>
+    <link rel="stylesheet" href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.css" />
+
+    <link rel="stylesheet" href="./css/main.css">
+
+    <link rel="stylesheet" href="./css/api-only.css">
+
+</head>
+<body id="api-only-page"> <div class="container">
+    <div class="sidebar">
+        <a href="/">
+            <img src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_White.png" alt="Spotify" class="logo">
+        </a>
+        <nav>
+            <a href="/" class="nav-item">Home</a>
+            <a href="#" class="nav-item">Search</a>
+            </nav>
+    </div>
+    <div class="main-content">
+        <header class="header">
+            <div class="profile-picture">
+                <img id="profile-picture" src="./images/generic.png" alt="Profile Picture" class="circular-image circular-image-checkout-page">
+            </div>
+        </header>
+
+        <div class="checkout-container">
+            <h1 id="checkout-title">Complete Your Purchase (API Only)</h1>
+
+            <div id="payment-form-wrapper"> <div class="form-group">
+                    <label for="card-container-label">Card Details</label> <div id="card-container"></div> </div>
+
+                <div class="form-group"> <div class="save-payment-container">
+                        <input type="checkbox" id="save-payment" name="save-payment">
+                        <label for="save-payment">Save your payment details for future use</label>
+                    </div>
+                </div>
+
+                <div class="form-group"> <button id="pay-button">Pay</button>
+                </div>
+            </div>
+
+            <div id="action-container"></div>
+
+            <div id="messages-area"></div>
+        </div>
+    </div>
+</div>
+    <script src="./js/utilities.js"></script>
+    <script src="./js/api-only.js"></script> </body>
+</html>

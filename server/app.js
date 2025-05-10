@@ -19,6 +19,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
+// Serve the api-only.html file
+app.get("/api-only", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "api-only.html"));
+});
+
 // Adyen NodeJS library configuration
 const config = new Config();
 config.apiKey = process.env.ADYEN_API_KEY;

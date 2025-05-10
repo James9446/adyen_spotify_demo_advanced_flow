@@ -1,0 +1,148 @@
+/* public/css/api-only.css - FRESH START */
+
+/* Apply box-sizing to elements within our specific scope for predictable sizing. */
+body#api-only-page .checkout-container *,
+body#api-only-page .checkout-container *::before,
+body#api-only-page .checkout-container *::after {
+    box-sizing: border-box;
+}
+
+/*
+The .checkout-container is defined in main.css (max-width: 500px; margin: 0 auto; padding: 20px;).
+We will assume these styles are active and provide a centered, padded container.
+Our focus is on the content *inside* it for this page.
+*/
+
+body#api-only-page #checkout-title {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 25px; /* Space below title */
+    padding: 0; /* Reset padding */
+    color: #ffffff; /* Ensure visibility from main.css */
+    font-size: 22px; /* Adjust as needed */
+    border: 1px dashed lightblue; /* --- DEBUG BORDER --- */
+}
+
+/* NEW: Wrapper for all payment form elements */
+body#api-only-page #payment-form-wrapper {
+    width: 100%;
+    margin: 0 auto; /* Center if parent .checkout-container doesn't force width */
+    padding: 10px;
+    border: 2px solid green; /* --- DEBUG BORDER --- */
+}
+
+/* Styling for each logical group within the form wrapper */
+body#api-only-page #payment-form-wrapper .form-group {
+    width: 100%; /* Make each group take full width */
+    margin-bottom: 20px; /* Space between each form group */
+    padding: 5px;
+    border: 1px dashed orange; /* --- DEBUG BORDER --- */
+}
+
+/* Ensure last form group doesn't have extra margin if not needed */
+body#api-only-page #payment-form-wrapper .form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Styling for labels within form groups */
+body#api-only-page #payment-form-wrapper .form-group label {
+    display: block; /* Make label take its own line */
+    margin-bottom: 8px; /* Space between label and its control */
+    color: #b3b3b3;
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px dotted yellow; /* --- DEBUG BORDER --- */
+}
+
+/* Container for Adyen's Card Component */
+body#api-only-page #card-container {
+    width: 100%;
+    min-height: 50px; /* Give it a minimum height to be visible before Adyen SDK loads */
+    padding: 10px; /* Inner padding for the Adyen component */
+    background-color: #282828; /* Dark background for the container itself */
+    border-radius: 4px;
+    border: 2px solid hotpink; /* --- DEBUG BORDER --- */
+}
+
+/*
+   Adyen's component (#card-container) might inject an iframe or complex div structure.
+   If Adyen's inputs are white on white or black on black:
+*/
+body#api-only-page #card-container .adyen-checkout__input {
+    /* These are attempts to style Adyen's *internal* inputs if they don't respect the theme. */
+    /* You might need to inspect Adyen's actual rendered elements to get correct selectors. */
+    background-color: #3E3E3E !important;
+    color: #FFFFFF !important;
+    border: 1px solid #535353 !important;
+}
+body#api-only-page #card-container .adyen-checkout__label__text {
+    color: #b3b3b3 !important;
+}
+
+
+/* "Save payment" container */
+body#api-only-page .save-payment-container {
+    display: flex; /* Align checkbox and label horizontally */
+    align-items: center;
+    padding: 5px 0; /* Add some vertical padding */
+    border: 1px dotted cyan; /* --- DEBUG BORDER --- */
+}
+
+body#api-only-page .save-payment-container input[type="checkbox"] {
+    margin-right: 10px;
+    width: auto; /* Override any global input[type=checkbox] width */
+    height: auto;/* Override any global input[type=checkbox] height */
+    accent-color: #1DB954; /* Modern way to style checkbox color */
+}
+
+/* Re-style the label within save-payment-container if it was made block globally by the .form-group label style */
+body#api-only-page .save-payment-container label {
+    display: inline; /* Make it inline with checkbox */
+    margin-bottom: 0; /* Reset margin */
+    font-weight: normal; /* Reset font-weight if needed */
+    color: #ffffff; /* Ensure visibility */
+}
+
+/* Pay button specific styling */
+body#api-only-page #pay-button {
+    display: block; /* Make button a block to take full width of its .form-group parent */
+    width: 100%;
+    padding: 12px 20px;
+    margin-top: 10px; /* Some space if needed above it, though form-group handles inter-group spacing */
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #1DB954;
+    color: #ffffff;
+    border: none;
+    border-radius: 30px;
+    text-align: center;
+    cursor: pointer;
+    line-height: normal; /* Ensure text is centered vertically */
+    height: auto; /* Let padding define height */
+    border: 2px solid limegreen; /* --- DEBUG BORDER --- */
+}
+
+body#api-only-page #pay-button:hover {
+    background-color: #1ED760;
+}
+
+/* Action and Messages Area - basic visibility and spacing */
+body#api-only-page #action-container,
+body#api-only-page #messages-area {
+    width: 100%;
+    margin-top: 20px;
+    padding: 15px;
+    min-height: 40px; /* Ensure visibility */
+    background-color: rgba(70, 70, 70, 0.3); /* Slightly visible background */
+    border-radius: 4px;
+    color: #fff;
+    border: 1px dashed white; /* --- DEBUG BORDER --- */
+}
+
+body#api-only-page #messages-area .message {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    text-align: center;
+}
+/* ... (add message-success, message-error, message-info styles as before if needed once layout is fixed) ... */

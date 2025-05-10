@@ -319,20 +319,6 @@ function handlePaymentResult(response, component) {
 };
 
 
-
-// Call server
-async function callServer(url, data) {
-    const response = await fetch(url, {
-        method: "POST",
-        body: data ? JSON.stringify(data) : "",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-
-    return await response.json();
-};
-
 // Helper Function to determine whether Tokenization should be applied 
 function shouldSavePayment() {
     checkboxValue = document.getElementById('save-payment').checked;
