@@ -11,6 +11,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // set the modal dropdown to display the current region configuration
         setModalSelections();
+
+        // set the pay button link
     } catch (error) {
         colorLog("Error with process triggered on page load:", error, 'orange');
     };

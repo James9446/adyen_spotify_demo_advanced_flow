@@ -14,9 +14,15 @@ const payButton = document.getElementById('pay-button'); // Initial attempt to g
 const actionContainer = document.getElementById('action-container');
 const messagesArea = document.getElementById('messages-area');
 
+actionContainer.style.display = 'none';
+messagesArea.style.display = 'none';
+
+
 // --- Utility Functions ---
 function showMessage(message, type = 'info') {
     if (messagesArea) {
+        messagesArea.style.display = 'block';
+        setTimeout(() => messagesArea.style.display = 'none', 2000);
         messagesArea.innerHTML = `<div class="message message-${type}">${message}</div>`;
         console.log(`Message displayed (${type}): ${message}`);
     } else {
@@ -24,30 +30,13 @@ function showMessage(message, type = 'info') {
     }
 }
 
-function addButtonToNavigate(href = "/", buttonText = "Explore Your Benefits") {
-    if (!messagesArea) {
-        console.error("messagesArea not found, cannot add navigation button.");
-        return;
-    }
-    const button = document.createElement("button");
-    button.textContent = buttonText;
-    // button.className = 'adyen-checkout__button'; // Use a common button style
-    button.style.marginTop = "20px";
-    button.style.display = 'block';
-    button.style.marginLeft = 'auto';
-    button.style.marginRight = 'auto';
-    button.addEventListener("click", () => {
-        window.location.href = href;
-    });
-    messagesArea.appendChild(document.createElement('br')); // For spacing
-    messagesArea.appendChild(button);
-}
-
 // --- Adyen Integration Functions ---
 
 // Handle the payment result from Adyen
 function handlePaymentResult(response, componentInstance) {
     console.log("handlePaymentResult called with response:", response);
+
+    actionContainer.style.display = 'none';
 
     if (componentInstance) {
         try {
@@ -86,7 +75,7 @@ function handlePaymentResult(response, componentInstance) {
             messageTitle = "Payment Refused";
             messageText = "Payment was refused. Please try another card or contact your bank.";
             messageType = 'error';
-            setTimeout(() => addButton("/checkout", "Continue"), 500);
+            setTimeout(() => addButton("/api-only", "Continue"), 500);
             colorLog("Final resultCode: ", response.resultCode, 'orange');
             break;
         case "Pending":
@@ -249,6 +238,7 @@ async function handleSubmission() {
                 colorLog("Action required: ", response.action.type, 'yellow');
                 if (actionContainer) { 
                     actionContainer.innerHTML = ''; 
+                    actionContainer.style.display = 'block';
                 } else {
                     console.error("actionContainer not found");
                 }

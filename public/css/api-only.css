@@ -1,4 +1,4 @@
-/* public/css/api-only.css - FRESH START */
+/* public/css/api-only.css - Cleaned Version */
 
 /* Apply box-sizing to elements within our specific scope for predictable sizing. */
 body#api-only-page .checkout-container *,
@@ -20,15 +20,14 @@ body#api-only-page #checkout-title {
     padding: 0; /* Reset padding */
     color: #ffffff; /* Ensure visibility from main.css */
     font-size: 22px; /* Adjust as needed */
-    border: 1px dashed lightblue; /* --- DEBUG BORDER --- */
 }
 
-/* NEW: Wrapper for all payment form elements */
+/* Wrapper for all payment form elements */
 body#api-only-page #payment-form-wrapper {
     width: 100%;
     margin: 0 auto; /* Center if parent .checkout-container doesn't force width */
     padding: 10px;
-    border: 2px solid green; /* --- DEBUG BORDER --- */
+    /* border: 2px solid green; --- DEBUG BORDER --- (Removed) */
 }
 
 /* Styling for each logical group within the form wrapper */
@@ -36,7 +35,7 @@ body#api-only-page #payment-form-wrapper .form-group {
     width: 100%; /* Make each group take full width */
     margin-bottom: 20px; /* Space between each form group */
     padding: 5px;
-    border: 1px dashed orange; /* --- DEBUG BORDER --- */
+    /* border: 1px dashed orange; --- DEBUG BORDER --- (Removed) */
 }
 
 /* Ensure last form group doesn't have extra margin if not needed */
@@ -51,7 +50,7 @@ body#api-only-page #payment-form-wrapper .form-group label {
     color: #b3b3b3;
     font-size: 14px;
     font-weight: bold;
-    border: 1px dotted yellow; /* --- DEBUG BORDER --- */
+    /* border: 1px dotted yellow; --- DEBUG BORDER --- (Removed) */
 }
 
 /* Container for Adyen's Card Component */
@@ -61,7 +60,9 @@ body#api-only-page #card-container {
     padding: 10px; /* Inner padding for the Adyen component */
     background-color: #282828; /* Dark background for the container itself */
     border-radius: 4px;
-    border: 2px solid hotpink; /* --- DEBUG BORDER --- */
+    /* border: 2px solid hotpink; --- DEBUG BORDER --- (Removed) */
+    /* Add a subtle border to make it look like an input area if desired */
+    border: 1px solid #404040; /* Matches other input borders from main.css if any */
 }
 
 /*
@@ -70,10 +71,13 @@ body#api-only-page #card-container {
 */
 body#api-only-page #card-container .adyen-checkout__input {
     /* These are attempts to style Adyen's *internal* inputs if they don't respect the theme. */
-    /* You might need to inspect Adyen's actual rendered elements to get correct selectors. */
     background-color: #3E3E3E !important;
     color: #FFFFFF !important;
-    border: 1px solid #535353 !important;
+    border: 1px solid #535353 !important; /* Adyen's internal input border */
+}
+body#api-only-page #card-container .adyen-checkout__input--focus { /* Style for focused Adyen input */
+    border-color: #1DB954 !important;
+    box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.25) !important;
 }
 body#api-only-page #card-container .adyen-checkout__label__text {
     color: #b3b3b3 !important;
@@ -85,7 +89,7 @@ body#api-only-page .save-payment-container {
     display: flex; /* Align checkbox and label horizontally */
     align-items: center;
     padding: 5px 0; /* Add some vertical padding */
-    border: 1px dotted cyan; /* --- DEBUG BORDER --- */
+    /* border: 1px dotted cyan; --- DEBUG BORDER --- (Removed) */
 }
 
 body#api-only-page .save-payment-container input[type="checkbox"] {
@@ -113,13 +117,13 @@ body#api-only-page #pay-button {
     font-weight: bold;
     background-color: #1DB954;
     color: #ffffff;
-    border: none;
+    border: none; /* Removing the debug border, ensure no other border is needed unless for aesthetics */
     border-radius: 30px;
     text-align: center;
     cursor: pointer;
     line-height: normal; /* Ensure text is centered vertically */
     height: auto; /* Let padding define height */
-    border: 2px solid limegreen; /* --- DEBUG BORDER --- */
+    /* border: 2px solid limegreen; --- DEBUG BORDER --- (Removed) */
 }
 
 body#api-only-page #pay-button:hover {
@@ -133,16 +137,16 @@ body#api-only-page #messages-area {
     margin-top: 20px;
     padding: 15px;
     min-height: 40px; /* Ensure visibility */
-    background-color: rgba(70, 70, 70, 0.3); /* Slightly visible background */
+    background-color: rgba(70, 70, 70, 0.3); /* Slightly visible background, can be changed */
     border-radius: 4px;
     color: #fff;
-    border: 1px dashed white; /* --- DEBUG BORDER --- */
+    /* border: 1px dashed white; --- DEBUG BORDER --- (Removed) */
 }
 
 body#api-only-page #messages-area .message {
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 4px;
+    color: white;
     text-align: center;
 }
-/* ... (add message-success, message-error, message-info styles as before if needed once layout is fixed) ... */

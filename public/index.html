@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotify - Web Player</title>
     <!-- <script src="index.js" defer></script> -->
-    <link rel="stylesheet" href="./css/main.css">
     <script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.js"></script>
     <link rel="stylesheet" href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.31.1/adyen.css" />
+    <link rel="stylesheet" href="./css/main.css">
 </head>
 <body>
     <div class="container">
@@ -65,10 +65,15 @@
                 <!-- <h2>Choose your Premium plan</h2> -->
                 <div class="plan">
                     <h2>Premium Individual</h2>
-                    <a id="get-premium-btn" href="checkout" class="button">Get Premium (Drop-in)</a>
-                    <p style="text-align: center; margin-top: 15px;">
+                    <!-- <select id="checkout-dropdown">
+                        <option value="checkout">Drop in</option>
+                        <option value="api-only">API Only</option>
+                    </select> -->
+                    <a id="get-premium-dropin-btn" href="checkout" class="button">Get Premium (Dropin)</a>
+                    <a id="get-premium-api-btn" href="api-only" class="button">Get Premium (API Only)</a>
+                    <!-- <p style="text-align: center; margin-top: 15px;">
                         Or try our <a href="api-only" style="color: #1DB954;">Custom UI Checkout</a>.
-                    </p>
+                    </p> -->
                 </div>
                 <div id="dropin-container"></div>
             </div>
