@@ -133,14 +133,14 @@ body#api-only-page #pay-button:hover {
 /* Action and Messages Area - basic visibility and spacing */
 body#api-only-page #action-container,
 body#api-only-page #messages-area {
+    display: none; /* Hidden by default */
     width: 100%;
     margin-top: 20px;
     padding: 15px;
-    min-height: 40px; /* Ensure visibility */
-    background-color: rgba(70, 70, 70, 0.3); /* Slightly visible background, can be changed */
+    min-height: 40px;
+    background-color: rgba(70, 70, 70, 0.3);
     border-radius: 4px;
     color: #fff;
-    /* border: 1px dashed white; --- DEBUG BORDER --- (Removed) */
 }
 
 body#api-only-page #messages-area .message {
@@ -149,4 +149,9 @@ body#api-only-page #messages-area .message {
     border-radius: 4px;
     color: white;
     text-align: center;
+}
+
+body#api-only-page #messages-area .message-refused {
+    background-color: #e91429; /* A common error red */
+    color: white;
 }
